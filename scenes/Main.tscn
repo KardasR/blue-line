@@ -15,4 +15,10 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8, 
 
 [node name="Lighting" type="Node" parent="." unique_id=188668628]
 
+[node name="Light Pen" type="DirectionalLight3D" parent="Lighting" unique_id=144038061]
+transform = Transform3D(1, 0, 0, 0, 0.70710677, 0.70710677, 0, -0.70710677, 0.70710677, 0, 135, 95)
+
+[node name="Light Bench" type="DirectionalLight3D" parent="Lighting" unique_id=133433348]
+transform = Transform3D(1, 0, 0, 0, -0.7071068, 0.7071067, 0, -0.7071067, -0.7071068, 0, 135, -95)
+
 [node name="UI" type="Node" parent="." unique_id=1792348452]

@@ -13,7 +13,7 @@ config_version=5
 config/name="Blue Line"
 config/version="0.0.0.1"
 run/main_scene="uid://cwlib3meeiv58"
-config/features=PackedStringArray("4.7", "Forward Plus")
+config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 boot_splash/show_image=false
 config/icon="res://resources/images/icon.svg"
 
