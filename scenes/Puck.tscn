@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://cyeykq4vgjpcy"]
+
+[ext_resource type="PackedScene" uid="uid://cravpm7j00hh" path="res://models/Puck/hockey-puck.glb" id="1_pnaq1"]
+
+[node name="Puck" type="Node3D" unique_id=303852217]
+
+[node name="Model" parent="." unique_id=1611560217 instance=ExtResource("1_pnaq1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0)

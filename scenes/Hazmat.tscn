@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://sk5sgyaqwtfa"]
+
+[ext_resource type="PackedScene" uid="uid://nc5u33h7dqkj" path="res://models/Hazmat/HazmatSuitPose.fbx" id="1_uy6rq"]
+
+[node name="Hazmat" type="Node3D" unique_id=607509670]
+
+[node name="HazmatSuitPose" parent="." unique_id=1609414079 instance=ExtResource("1_uy6rq")]
+
+[editable path="HazmatSuitPose"]
