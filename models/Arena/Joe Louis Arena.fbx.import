@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://by1eiuivhqpvt"
-path="res://.godot/imported/Joe Louis Arena.fbx-d842fca5b5383360104fcca355b443ad.scn"
+path="res://.godot/imported/Joe Louis Arena.fbx-446305a6edaa385c7d54ed4bd019ed76.scn"
 
 [deps]
 
-source_file="res://models/Joe Louis Arena.fbx"
-dest_files=["res://.godot/imported/Joe Louis Arena.fbx-d842fca5b5383360104fcca355b443ad.scn"]
+source_file="res://models/Arena/Joe Louis Arena.fbx"
+dest_files=["res://.godot/imported/Joe Louis Arena.fbx-446305a6edaa385c7d54ed4bd019ed76.scn"]
 
 [params]
 

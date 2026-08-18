@@ -2,7 +2,18 @@
 
 [ext_resource type="PackedScene" uid="uid://bhfnw66vsyq87" path="res://models/Stick/HockeyStickBake.fbx" id="1_uh50m"]
 
-[node name="Node3D" type="Node3D" unique_id=1100160809]
+[sub_resource type="BoxShape3D" id="BoxShape3D_1sys4"]
+size = Vector3(0.92541504, 0.25610352, 0.15512085)
 
-[node name="HockeyStickBake" parent="." unique_id=918652701 instance=ExtResource("1_uh50m")]
+[node name="Stick" type="Node3D" unique_id=1100160809]
+
+[node name="Model" parent="." unique_id=918652701 instance=ExtResource("1_uh50m")]
 transform = Transform3D(-1, 8.742278e-08, 3.821371e-15, 0, -4.371139e-08, 1, 8.742278e-08, 1, 4.371139e-08, 0, 2.925, 0)
+
+[node name="Collision Shapes" type="Area3D" parent="." unique_id=1679342200]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Collision Shapes" unique_id=923551765]
+transform = Transform3D(0.8340375, -0.5517078, 0, 0.5517078, 0.8340375, 0, 0, 0, 1, -0.026168015, 0.2868634, 0.093307495)
+shape = SubResource("BoxShape3D_1sys4")
+
+[editable path="Model"]
