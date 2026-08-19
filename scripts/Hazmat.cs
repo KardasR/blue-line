@@ -7,6 +7,10 @@ public partial class Hazmat : CharacterBody3D
 
     private Puck _heldPuck;
 
+    private bool _takingShot;
+
+    private uint _shotTimer;
+
     #endregion Members
 
     #region Properties
@@ -87,6 +91,18 @@ public partial class Hazmat : CharacterBody3D
     [Export]
     public Goal AttackingGoal { get; set; }
 
+    /// <summary>
+    /// How long a user has to hold the shoot button to take a slapshot.
+    /// </summary>
+    [Export]
+    public uint SlapshotThreshold { get; set; }
+
+    /// <summary>
+    /// What to multiply a players typical shot speed by to get a slapshot speed.
+    /// </summary>
+    [Export]
+    public float SlapshotMultiplier { get; set; }
+
     #endregion Puck Settings
 
     #endregion Properties
@@ -138,12 +154,25 @@ public partial class Hazmat : CharacterBody3D
         if (_heldPuck == null)
             return;
 
+        if (Input.IsActionJustPressed("shoot"))
+        {
+            _takingShot = true;
+            _shotTimer = 0;
+        }
         if (Input.IsActionPressed("shoot"))
         {
-            _heldPuck.Shoot(AttackingGoal.GetTargetPoint(aim), ShotSpeed);
+            _shotTimer += 1;
+        }
+        if (Input.IsActionJustReleased("shoot"))
+        {
+            float speed = _shotTimer >= SlapshotThreshold ? ShotSpeed * SlapshotMultiplier : ShotSpeed;
+
+            _heldPuck.Shoot(AttackingGoal.GetTargetPoint(aim), speed);
 
             _heldPuck = null;
         }
+
+
         if (Input.IsActionPressed("pass"))
         {
             _heldPuck.Shoot(Velocity, PassSpeed);

@@ -74,9 +74,11 @@ CameraPosition = NodePath("../Camera Rig/Camera Pos/Camera")
 Speed = 20
 TurnSpeed = 10.0
 StoppingAcceleration = 40.0
-ShotSpeed = 60.0
+ShotSpeed = 70.0
 PassSpeed = 40.0
 AttackingGoal = NodePath("../Arena/Joe Louis Arena/Goal B")
+SlapshotThreshold = 15
+SlapshotMultiplier = 1.5
 
 [node name="Camera Rig" type="Node3D" parent="." unique_id=177706517 node_paths=PackedStringArray("Target")]
 script = ExtResource("6_c01mt")
