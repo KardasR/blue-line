@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://cyeykq4vgjpcy" path="res://scenes/Puck.tscn" id="3_0bbpv"]
 [ext_resource type="FontFile" uid="uid://b6xdhle0vwdgb" path="res://resources/fonts/DS-DIGII.TTF" id="5_vcsgt"]
 [ext_resource type="Script" uid="uid://ksf3ndq2he87" path="res://scripts/CameraRig.cs" id="6_c01mt"]
+[ext_resource type="Script" uid="uid://c2mc7ghwqrgy2" path="res://scripts/ShotVisualizer.cs" id="8_jlsqs"]
 
 [sub_resource type="FontVariation" id="FontVariation_hnwdx"]
 base_font = ExtResource("5_vcsgt")
@@ -67,12 +68,15 @@ theme_override_fonts/font = SubResource("FontVariation_hnwdx")
 theme_override_font_sizes/font_size = 64
 text = "|"
 
-[node name="Hazmat" parent="." unique_id=607509670 node_paths=PackedStringArray("CameraPosition") instance=ExtResource("2_rvslj")]
+[node name="Hazmat" parent="." unique_id=607509670 node_paths=PackedStringArray("CameraPosition", "AttackingGoal") instance=ExtResource("2_rvslj")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 11, 0, 0)
 CameraPosition = NodePath("../Camera Rig/Camera Pos/Camera")
+Speed = 20
 TurnSpeed = 10.0
-
-[node name="Arena" parent="." unique_id=1471467799 instance=ExtResource("1_elqb8")]
+StoppingAcceleration = 40.0
+ShotSpeed = 60.0
+PassSpeed = 40.0
+AttackingGoal = NodePath("../Arena/Joe Louis Arena/Goal B")
 
 [node name="Camera Rig" type="Node3D" parent="." unique_id=177706517 node_paths=PackedStringArray("Target")]
 script = ExtResource("6_c01mt")
@@ -84,9 +88,28 @@ transform = Transform3D(-3.7855173e-08, 0.50000006, -0.86602545, 2.1855694e-08, 
 [node name="Camera" type="Camera3D" parent="Camera Rig/Camera Pos" unique_id=1848201322]
 transform = Transform3D(-1, -5.856222e-09, 9.756606e-08, 8.1566576e-08, 0.5000001, 0.86602557, -5.3854656e-08, 0.86602557, -0.49999988, -1.2492206e-06, 16.5, -28.578836)
 
+[node name="Shot Visualizer" parent="." unique_id=265332890 node_paths=PackedStringArray("Net") instance=ExtResource("3_0bbpv")]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, -79.77781, 1.3931377, 1.7437139)
+collision_layer = 2
+collision_mask = 2
+script = ExtResource("8_jlsqs")
+Net = NodePath("../Arena/Joe Louis Arena/Goal B")
+
+[node name="Arena" parent="." unique_id=1471467799 instance=ExtResource("1_elqb8")]
+
+[node name="Goal A" parent="Arena/Joe Louis Arena" parent_id_path=PackedInt32Array(1471467799, 2048491058) index="9" unique_id=56669343 node_paths=PackedStringArray("AimTarget")]
+AimTarget = NodePath("Goal A Target")
+
+[node name="Goal B" parent="Arena/Joe Louis Arena" parent_id_path=PackedInt32Array(1471467799, 2048491058) index="10" unique_id=489359712 node_paths=PackedStringArray("AimTarget")]
+AimTarget = NodePath("Goal B Target")
+
+[node name="Goal B Target" parent="Arena/Joe Louis Arena/Goal B" index="1" unique_id=317831128]
+transform = Transform3D(1, 5.3290705e-15, -3.1763738e-22, 0, 1.0000006, 7.338583e-27, 0, -1.5987164e-14, 1.0000006, 0, 1.651, -0.35)
+
 [editable path="Hazmat"]
 [editable path="Hazmat/Model"]
 [editable path="Hazmat/Stick"]
 [editable path="Hazmat/Stick/Model"]
+[editable path="Shot Visualizer"]
 [editable path="Arena"]
 [editable path="Arena/Joe Louis Arena"]

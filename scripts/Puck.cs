@@ -22,31 +22,35 @@ public partial class Puck : RigidBody3D
 
     public void Shoot(Vector3 direction, float force)
     {
-        if (_isHeld)
-        {
-            Reparent(GetTree().CurrentScene);
+        if (!_isHeld)
+            return;
+        
+        Reparent(GetTree().CurrentScene);
 
-            Freeze = false;
+        Vector3 target = (
+            direction - GlobalPosition
+        ).Normalized();
 
-            ApplyCentralImpulse(direction * force);
-        }
+        Freeze = false;
+
+        LinearVelocity = target * force;
 
         _isHeld = false;
     }
 
     public void Grab(Node3D grabPoint)
     {
-        if (!_isHeld)
-        {
-            _isHeld = true;
+        if (_isHeld)
+            return;
+        
+        _isHeld = true;
 
-            ResetPuck();
+        ResetPuck();
 
-            Freeze = true;
-            GlobalPosition = grabPoint.GlobalPosition;
-            
-            Reparent(grabPoint);
-        }
+        Freeze = true;
+        GlobalPosition = grabPoint.GlobalPosition;
+        
+        Reparent(grabPoint);
     }
 
     public void DropThePuck(FaceoffDot faceoffDot)

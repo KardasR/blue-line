@@ -11,17 +11,17 @@ public partial class Hazmat : CharacterBody3D
 
     #region Properties
 
+    #region Camera Settings
+
     /// <summary> 
     /// Position of where the camera is in the game.
     /// </summary> 
     [Export] 
     Camera3D CameraPosition { get; set; }
 
-    /// <summary>
-    /// Position of where to hold the puck.
-    /// </summary>
-    [Export]
-    public Node3D PuckHoldPoint { get; set; }
+    #endregion Camera Settings
+
+    #region Movement Settings
 
     /// <summary> 
     /// How fast the player moves in meters per second.
@@ -42,6 +42,34 @@ public partial class Hazmat : CharacterBody3D
     public float TurnSpeed { get; set; } = 0.01f;
 
     /// <summary>
+    /// How quick the player comes up to speed;
+    /// </summary>
+    [Export]
+    public float Acceleration { get; set; } = 20.0f;
+
+    /// <summary>
+    /// How much the player slows due to ice.
+    /// </summary>
+    [Export]
+    public float IceFriction { get; set; } = 3.0f;
+
+    /// <summary>
+    /// How quick the player will come to a stop when going against their movement.
+    /// </summary>
+    [Export]
+    public float StoppingAcceleration { get; set; } = 60.0f;
+
+    #endregion Movement Settings
+
+    #region Puck Settings
+
+    /// <summary>
+    /// Position of where to hold the puck.
+    /// </summary>
+    [Export]
+    public Node3D PuckHoldPoint { get; set; }
+
+    /// <summary>
     /// How hard the player shoots.
     /// </summary>
     [Export]
@@ -52,6 +80,14 @@ public partial class Hazmat : CharacterBody3D
     /// </summary>
     [Export]
     public float PassSpeed { get; set; } = 20.0f;
+
+    /// <summary>
+    /// Which goal the player is shooting at.
+    /// </summary>
+    [Export]
+    public Goal AttackingGoal { get; set; }
+
+    #endregion Puck Settings
 
     #endregion Properties
 
@@ -90,18 +126,27 @@ public partial class Hazmat : CharacterBody3D
         ); 
         
         MovePlayer(delta, input);
-        DidPlayerShoot();
+        CheckForPuckAction(input);
     } 
 
     #endregion Overrides
 
     #region Private Methods
 
-    private void DidPlayerShoot()
+    private void CheckForPuckAction(Vector2 aim)
     {
+        if (_heldPuck == null)
+            return;
+
         if (Input.IsActionPressed("shoot"))
         {
-            _heldPuck.Shoot(Velocity, ShotSpeed);
+            _heldPuck.Shoot(AttackingGoal.GetTargetPoint(aim), ShotSpeed);
+
+            _heldPuck = null;
+        }
+        if (Input.IsActionPressed("pass"))
+        {
+            _heldPuck.Shoot(Velocity, PassSpeed);
 
             _heldPuck = null;
         }
@@ -142,13 +187,43 @@ public partial class Hazmat : CharacterBody3D
                 ),
                 Rotation.Z
             );
-        } 
-        
+        }        
+
+        Vector3 horizontalVelocity = new Vector3(
+            Velocity.X,
+            0,
+            Velocity.Z
+        );
+
+        if (direction != Vector3.Zero)
+        {
+            Vector3 desiredVelocity = direction * Speed;
+
+            float accel = Acceleration;
+
+            // Are we trying to move against our current momentum?
+            if (horizontalVelocity.Dot(direction) < 0)
+            {
+                accel = StoppingAcceleration;
+            }
+
+            horizontalVelocity = horizontalVelocity.MoveToward(
+                desiredVelocity,
+                accel * (float)delta
+            );
+        }
+        else
+        {
+            horizontalVelocity = horizontalVelocity.MoveToward(
+                Vector3.Zero,
+                IceFriction * (float)delta
+            );
+        }
 
         Velocity = new Vector3(
-            direction.X * Speed,
+            horizontalVelocity.X,
             Velocity.Y,
-            direction.Z * Speed
+            horizontalVelocity.Z
         );
 
         if (!IsOnFloor())

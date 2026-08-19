@@ -206,7 +206,7 @@ PuckHoldPoint = NodePath("Puck Hold Point")
 transform = Transform3D(0.8020321, 0.5972809, 0, -0.5927218, 0.7959101, 0.12332016, 0.07365678, -0.09890673, 0.9923669, -2.7529616, -0.06931603, 1.3125279)
 
 [node name="Puck Hold Point" type="Node3D" parent="." unique_id=810094759]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.7061691, 0.24852812, 1.6781125)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.615, 0.225, 1.68)
 
 [node name="CollisionShape3D33" type="CollisionShape3D" parent="." unique_id=19825218]
 transform = Transform3D(100, 0, 0, 0, -1.1920929e-05, 99.99999, 0, -99.99999, -1.1920929e-05, 0, 3.4774685, 0)
