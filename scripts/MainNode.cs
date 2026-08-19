@@ -11,12 +11,6 @@ public partial class MainNode : Node
     [Export]
     public PackedScene PuckScene { get; set; }
 
-    /// <summary>
-    /// Where to drop the puck.
-    /// </summary>
-    [Export]
-    public Node3D PuckSpawnPoint { get; set; }
-
     #endregion Properties
 
     #region Overrides
@@ -27,17 +21,15 @@ public partial class MainNode : Node
         {
             throw new InvalidOperationException("Puck Scene was not given. Cannot spawn puck");
         }
-        if (PuckSpawnPoint == null)
-        {
-            throw new InvalidOperationException("Puck Spawn Point was not given. Cannot spawn puck");
-        }
 
         // create and add the puck to the scene
-        // Puck puck = PuckScene.Instantiate<Puck>();
+        // TODO: do this for the player too?
+        Puck puck = PuckScene.Instantiate<Puck>();
 
-        // this.AddChild(puck);
-
-        // puck.DropThePuck(PuckSpawnPoint.Position);
+        AddChild(puck);
+        
+        puck.FaceoffLocations = GetNode<Node>("Arena/Faceoff Dots");
+        puck.DropThePuck(FaceoffDot.CenterIce);
     }
 
     #endregion Overrides
