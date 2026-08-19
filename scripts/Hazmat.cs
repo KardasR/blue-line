@@ -1,7 +1,14 @@
+using System;
 using Godot;
 
 public partial class Hazmat : CharacterBody3D
 {
+    #region Members
+
+    private Puck _heldPuck;
+
+    #endregion Members
+
     #region Properties
 
     /// <summary> 
@@ -9,6 +16,12 @@ public partial class Hazmat : CharacterBody3D
     /// </summary> 
     [Export] 
     Camera3D CameraPosition { get; set; }
+
+    /// <summary>
+    /// Position of where to hold the puck.
+    /// </summary>
+    [Export]
+    public Node3D PuckHoldPoint { get; set; }
 
     /// <summary> 
     /// How fast the player moves in meters per second.
@@ -28,7 +41,37 @@ public partial class Hazmat : CharacterBody3D
     [Export] 
     public float TurnSpeed { get; set; } = 0.01f;
 
+    /// <summary>
+    /// How hard the player shoots.
+    /// </summary>
+    [Export]
+    public float ShotSpeed { get; set; } = 40.0f;
+
+    /// <summary>
+    /// How hard the player passes the puck.
+    /// </summary>
+    [Export]
+    public float PassSpeed { get; set; } = 20.0f;
+
     #endregion Properties
+
+    #region Events
+    
+    public void On_Blade_BodyEntered(Node3D body)
+    {
+        if (PuckHoldPoint == null)
+        {
+            throw new InvalidOperationException("No puck hold point was given. Puck cannot be grabbed.");
+        }
+
+        if (body is Puck puck && _heldPuck == null)
+        {
+            puck.Grab(PuckHoldPoint);
+            _heldPuck = puck;
+        }
+    }
+
+    #endregion Events
 
     #region Overrides
 
@@ -46,6 +89,26 @@ public partial class Hazmat : CharacterBody3D
             "move_backward" 
         ); 
         
+        MovePlayer(delta, input);
+        DidPlayerShoot();
+    } 
+
+    #endregion Overrides
+
+    #region Private Methods
+
+    private void DidPlayerShoot()
+    {
+        if (Input.IsActionPressed("shoot"))
+        {
+            _heldPuck.Shoot(Velocity, ShotSpeed);
+
+            _heldPuck = null;
+        }
+    }
+
+    private void MovePlayer(double delta, Vector2 input)
+    {
         // future direction of player
         Vector3 direction = Vector3.Zero; 
         if (input != Vector2.Zero) 
@@ -98,7 +161,7 @@ public partial class Hazmat : CharacterBody3D
         }
         
         MoveAndSlide(); 
-    } 
+    }
 
-    #endregion Overrides
+    #endregion Private Methods
 }

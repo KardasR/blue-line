@@ -8,6 +8,7 @@ height = 0.1038208
 radius = 0.20166016
 
 [node name="Puck" type="RigidBody3D" unique_id=265332890]
+continuous_cd = true
 script = ExtResource("1_w43r8")
 
 [node name="Model" parent="." unique_id=1611560217 instance=ExtResource("1_pnaq1")]

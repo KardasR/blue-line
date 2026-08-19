@@ -3,6 +3,12 @@ using Godot;
 
 public partial class Puck : RigidBody3D
 {
+    #region Members
+
+    private bool _isHeld;
+
+    #endregion Members
+
     #region Properties
 
     /// <summary>
@@ -14,6 +20,35 @@ public partial class Puck : RigidBody3D
 
     #region Public Methods
 
+    public void Shoot(Vector3 direction, float force)
+    {
+        if (_isHeld)
+        {
+            Reparent(GetTree().CurrentScene);
+
+            Freeze = false;
+
+            ApplyCentralImpulse(direction * force);
+        }
+
+        _isHeld = false;
+    }
+
+    public void Grab(Node3D grabPoint)
+    {
+        if (!_isHeld)
+        {
+            _isHeld = true;
+
+            ResetPuck();
+
+            Freeze = true;
+            GlobalPosition = grabPoint.GlobalPosition;
+            
+            Reparent(grabPoint);
+        }
+    }
+
     public void DropThePuck(FaceoffDot faceoffDot)
     {
         if (FaceoffLocations == null)
@@ -22,10 +57,7 @@ public partial class Puck : RigidBody3D
         }
 
         // Reset anything from prior use
-        LinearVelocity = Vector3.Zero;
-        AngularVelocity = Vector3.Zero;
-        Rotation = Vector3.Zero;
-        
+        ResetPuck();
         
         Vector3 faceoffLocation = new();
         switch(faceoffDot)
@@ -69,4 +101,16 @@ public partial class Puck : RigidBody3D
     }
 
     #endregion Public Methods
+
+    #region Private Methods
+
+    private void ResetPuck()
+    {
+        // Reset anything from prior use
+        LinearVelocity = Vector3.Zero;
+        AngularVelocity = Vector3.Zero;
+        Rotation = Vector3.Zero;
+    }
+
+    #endregion Private Methods
 }

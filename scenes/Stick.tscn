@@ -15,5 +15,6 @@ transform = Transform3D(-1, 8.742278e-08, 3.821371e-15, 0, -4.371139e-08, 1, 8.7
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Collision Shapes" unique_id=923551765]
 transform = Transform3D(0.8340375, -0.5517078, 0, 0.5517078, 0.8340375, 0, 0, 0, 1, -0.026168015, 0.2868634, 0.093307495)
 shape = SubResource("BoxShape3D_1sys4")
+debug_color = Color(0, 0.6, 0.69803923, 1)
 
 [editable path="Model"]
