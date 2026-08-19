@@ -461,6 +461,11 @@ transform = Transform3D(0.8020321, 0.5972809, 0, -0.5927218, 0.7959101, 0.123320
 [node name="Puck Hold Point" type="Node3D" parent="." unique_id=810094759]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.7061691, 0.24852812, 1.6781125)
 
+[node name="Camera Rig" type="Marker3D" parent="." unique_id=2119809250]
+transform = Transform3D(-1, 0, -8.742278e-08, -2.4427887e-08, 0.96016824, 0.27942246, 8.394058e-08, 0.27942246, -0.96016824, 0, 10.760613, -8.112765)
+
+[node name="Camera" type="Camera3D" parent="Camera Rig" unique_id=980212098]
+
 [editable path="Model"]
 [editable path="Stick"]
 [editable path="Stick/Model"]

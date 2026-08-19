@@ -22,3 +22,10 @@ transform = Transform3D(1, 0, 0, 0, 0.70710677, 0.70710677, 0, -0.70710677, 0.70
 transform = Transform3D(1, 0, 0, 0, -0.7071068, 0.7071067, 0, -0.7071067, -0.7071068, 0, 135, -95)
 
 [node name="UI" type="Node" parent="." unique_id=1792348452]
+
+[editable path="Arena"]
+[editable path="Arena/Joe Louis Arena"]
+[editable path="Hazmat"]
+[editable path="Hazmat/Model"]
+[editable path="Hazmat/Stick"]
+[editable path="Hazmat/Stick/Model"]
