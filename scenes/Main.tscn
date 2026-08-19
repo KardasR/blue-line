@@ -1,17 +1,20 @@
 [gd_scene format=3 uid="uid://cwlib3meeiv58"]
 
 [ext_resource type="PackedScene" uid="uid://bc42jc5himww3" path="res://scenes/Arena.res" id="1_elqb8"]
+[ext_resource type="Script" uid="uid://df2vifu02qwet" path="res://scripts/MainNode.cs" id="1_rarhs"]
 [ext_resource type="PackedScene" uid="uid://sk5sgyaqwtfa" path="res://scenes/Hazmat.tscn" id="2_rvslj"]
-[ext_resource type="PackedScene" uid="uid://cyeykq4vgjpcy" path="res://scenes/Puck.tscn" id="3_0bbpv"]
+[ext_resource type="FontFile" uid="uid://b6xdhle0vwdgb" path="res://resources/fonts/DS-DIGII.TTF" id="5_vcsgt"]
+
+[sub_resource type="FontVariation" id="FontVariation_hnwdx"]
+base_font = ExtResource("5_vcsgt")
 
 [node name="Main" type="Node" unique_id=351154566]
+script = ExtResource("1_rarhs")
 
 [node name="Arena" parent="." unique_id=1471467799 instance=ExtResource("1_elqb8")]
 
 [node name="Hazmat" parent="." unique_id=607509670 instance=ExtResource("2_rvslj")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8, 0, 0)
-
-[node name="Puck" parent="." unique_id=303852217 instance=ExtResource("3_0bbpv")]
 
 [node name="Lighting" type="Node" parent="." unique_id=188668628]
 
@@ -22,6 +25,49 @@ transform = Transform3D(1, 0, 0, 0, 0.70710677, 0.70710677, 0, -0.70710677, 0.70
 transform = Transform3D(1, 0, 0, 0, -0.7071068, 0.7071067, 0, -0.7071067, -0.7071068, 0, 135, -95)
 
 [node name="UI" type="Node" parent="." unique_id=1792348452]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="UI" unique_id=18550093]
+
+[node name="Home Abbrev" type="Label" parent="UI/CanvasLayer" unique_id=740073740]
+offset_left = 691.0
+offset_right = 840.0
+offset_bottom = 75.0
+theme_override_fonts/font = SubResource("FontVariation_hnwdx")
+theme_override_font_sizes/font_size = 64
+text = "DET -"
+
+[node name="Home Score" type="Label" parent="UI/CanvasLayer" unique_id=235573024]
+offset_left = 836.0
+offset_right = 937.0
+offset_bottom = 75.0
+theme_override_fonts/font = SubResource("FontVariation_hnwdx")
+theme_override_font_sizes/font_size = 64
+text = "000"
+
+[node name="Away Abbrev" type="Label" parent="UI/CanvasLayer" unique_id=980995024]
+offset_left = 993.0
+offset_right = 1142.0
+offset_bottom = 75.0
+theme_override_fonts/font = SubResource("FontVariation_hnwdx")
+theme_override_font_sizes/font_size = 64
+text = "AWY -"
+
+[node name="Away Score" type="Label" parent="UI/CanvasLayer" unique_id=576469994]
+offset_left = 1138.0
+offset_right = 1239.0
+offset_bottom = 75.0
+theme_override_fonts/font = SubResource("FontVariation_hnwdx")
+theme_override_font_sizes/font_size = 64
+text = "000"
+
+[node name="Dash" type="Label" parent="UI/CanvasLayer" unique_id=225786057]
+offset_left = 954.0
+offset_top = -4.0
+offset_right = 984.0
+offset_bottom = 71.0
+theme_override_fonts/font = SubResource("FontVariation_hnwdx")
+theme_override_font_sizes/font_size = 64
+text = "|"
 
 [editable path="Arena"]
 [editable path="Arena/Joe Louis Arena"]
