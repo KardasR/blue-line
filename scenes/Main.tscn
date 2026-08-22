@@ -7,13 +7,16 @@
 [ext_resource type="FontFile" uid="uid://b6xdhle0vwdgb" path="res://resources/fonts/DS-DIGII.TTF" id="5_vcsgt"]
 [ext_resource type="Script" uid="uid://ksf3ndq2he87" path="res://scripts/CameraRig.cs" id="6_c01mt"]
 [ext_resource type="Script" uid="uid://c2mc7ghwqrgy2" path="res://scripts/ShotVisualizer.cs" id="8_jlsqs"]
+[ext_resource type="PackedScene" uid="uid://cqemkr86gc23n" path="res://scenes/Goalie.tscn" id="8_q8u5g"]
 
 [sub_resource type="FontVariation" id="FontVariation_hnwdx"]
 base_font = ExtResource("5_vcsgt")
 
-[node name="Main" type="Node" unique_id=351154566]
+[node name="Main" type="Node" unique_id=351154566 node_paths=PackedStringArray("HomeGoal", "AwayGoal")]
 script = ExtResource("1_rarhs")
 PuckScene = ExtResource("3_0bbpv")
+HomeGoal = NodePath("Arena/Joe Louis Arena/Goal A")
+AwayGoal = NodePath("Arena/Joe Louis Arena/Goal B")
 
 [node name="Lighting" type="Node" parent="." unique_id=188668628]
 
@@ -97,16 +100,26 @@ collision_mask = 2
 script = ExtResource("8_jlsqs")
 Net = NodePath("../Arena/Joe Louis Arena/Goal B")
 
+[node name="Goalie" parent="." unique_id=1075997564 node_paths=PackedStringArray("GoalToDefend") instance=ExtResource("8_q8u5g")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -79.117744, 0.05887556, -0.0067050457)
+GoalToDefend = NodePath("../Arena/Joe Louis Arena/Goal B")
+
 [node name="Arena" parent="." unique_id=1471467799 instance=ExtResource("1_elqb8")]
 
 [node name="Goal A" parent="Arena/Joe Louis Arena" parent_id_path=PackedInt32Array(1471467799, 2048491058) index="9" unique_id=56669343 node_paths=PackedStringArray("AimTarget")]
 AimTarget = NodePath("Goal A Target")
+HomeGoal = true
 
 [node name="Goal B" parent="Arena/Joe Louis Arena" parent_id_path=PackedInt32Array(1471467799, 2048491058) index="10" unique_id=489359712 node_paths=PackedStringArray("AimTarget")]
 AimTarget = NodePath("Goal B Target")
 
 [node name="Goal B Target" parent="Arena/Joe Louis Arena/Goal B" index="1" unique_id=317831128]
 transform = Transform3D(1, 5.3290705e-15, -3.1763738e-22, 0, 1.0000006, 7.338583e-27, 0, -1.5987164e-14, 1.0000006, 0, 1.651, -0.35)
+
+[connection signal="body_entered" from="Arena/Joe Louis Arena/Goal A/Goal A Target" to="Arena/Joe Louis Arena/Goal A" method="On_Goal_BodyEntered"]
+[connection signal="body_exited" from="Arena/Joe Louis Arena/Goal A/Goal A Target" to="Arena/Joe Louis Arena/Goal A" method="On_Goal_BodyExited"]
+[connection signal="body_entered" from="Arena/Joe Louis Arena/Goal B/Goal B Target" to="Arena/Joe Louis Arena/Goal B" method="On_Goal_BodyEntered"]
+[connection signal="body_exited" from="Arena/Joe Louis Arena/Goal B/Goal B Target" to="Arena/Joe Louis Arena/Goal B" method="On_Goal_BodyExited"]
 
 [editable path="Hazmat"]
 [editable path="Hazmat/Model"]

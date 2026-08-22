@@ -8,6 +8,11 @@ public partial class ShotVisualizer : RigidBody3D
     [Export]
     public Goal Net { get; set; }
 
+    /// <summary>
+    /// The shot trainer should not move after a goal is scored. This way the player can see where they shot it when they scored.
+    /// </summary>
+    public bool GoalScored { get; set; }
+
     public override void _Process(double delta)
     {
         // create a vector2 out of the inputs 
@@ -18,7 +23,8 @@ public partial class ShotVisualizer : RigidBody3D
             "move_backward" 
         ); 
 
-        GlobalPosition = Net.GetTargetPoint(input);
+        if (!GoalScored)
+            GlobalPosition = Net.GetTargetPoint(input);
     }
 
 }

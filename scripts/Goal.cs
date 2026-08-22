@@ -3,6 +3,12 @@ using Godot;
 
 public partial class Goal : MeshInstance3D
 {
+    #region Members
+
+    private float _puckX;
+
+    #endregion Members
+
     #region Properties
 
     /// <summary>
@@ -24,12 +30,49 @@ public partial class Goal : MeshInstance3D
     public float AimDeadzone { get; set; } = 0.15f;
 
     /// <summary>
-    /// 
+    /// Aim target that sits in the net.
     /// </summary>
     [Export]
     public Node3D AimTarget { get; set; }
 
+    /// <summary>
+    /// Is this the home goal?
+    /// </summary>
+    [Export]
+    public bool HomeGoal { get; set; }
+
     #endregion Properties
+
+    #region Events
+
+    public EventHandler GoalScored;
+
+    public void On_Goal_BodyEntered(Node3D body)
+    {
+        if (body is Puck puck)
+        {
+            _puckX = puck.GlobalPosition.X;
+        }
+    }
+
+    public void On_Goal_BodyExited(Node3D body)
+    {
+        if (body is Puck puck)
+        {
+            if ((HomeGoal &&
+                    puck.GlobalPosition.X > _puckX) ||
+                (!HomeGoal &&
+                    puck.GlobalPosition.X < _puckX))
+            {
+                // a goal has been scored.
+                GoalScored.Invoke(this, new EventArgs());
+            }
+
+            _puckX = 0;
+        }
+    }
+
+    #endregion Events
 
     #region Public Methods
 

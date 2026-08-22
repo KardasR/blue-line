@@ -20,6 +20,11 @@ public partial class Puck : RigidBody3D
 
     #region Public Methods
 
+    /// <summary>
+    /// Shoot the puck in a specific direction.
+    /// </summary>
+    /// <param name="direction">Where to shoot the puck</param>
+    /// <param name="force">How hard to shoot the puck</param>
     public void Shoot(Vector3 direction, float force)
     {
         if (!_isHeld)
@@ -38,6 +43,10 @@ public partial class Puck : RigidBody3D
         _isHeld = false;
     }
 
+    /// <summary>
+    /// Freeze the puck and mark it as held so it doesn't fly off the players stick.
+    /// </summary>
+    /// <param name="grabPoint"></param>
     public void Grab(Node3D grabPoint)
     {
         if (_isHeld)
@@ -53,6 +62,11 @@ public partial class Puck : RigidBody3D
         Reparent(grabPoint);
     }
 
+    /// <summary>
+    /// Drops the puck at a given faceoff dot.
+    /// </summary>
+    /// <param name="faceoffDot">Where to drop the puck</param>
+    /// <exception cref="InvalidOperationException">You must give a node object that is a collection of faceoff dots (area3d's)</exception>
     public void DropThePuck(FaceoffDot faceoffDot)
     {
         if (FaceoffLocations == null)
@@ -104,11 +118,10 @@ public partial class Puck : RigidBody3D
         GlobalPosition = faceoffLocation;
     }
 
-    #endregion Public Methods
-
-    #region Private Methods
-
-    private void ResetPuck()
+    /// <summary>
+    /// Halts the puck and makes sure that it's standing still.
+    /// </summary>
+    public void ResetPuck()
     {
         // Reset anything from prior use
         LinearVelocity = Vector3.Zero;
@@ -116,5 +129,5 @@ public partial class Puck : RigidBody3D
         Rotation = Vector3.Zero;
     }
 
-    #endregion Private Methods
+    #endregion Public Methods
 }
