@@ -1,6 +1,8 @@
 using System;
 using Godot;
 
+namespace BlueLine;
+
 public partial class Puck : RigidBody3D
 {
     #region Members

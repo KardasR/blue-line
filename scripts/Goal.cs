@@ -1,6 +1,8 @@
 using System;
 using Godot;
 
+namespace BlueLine;
+
 public partial class Goal : MeshInstance3D
 {
     #region Members

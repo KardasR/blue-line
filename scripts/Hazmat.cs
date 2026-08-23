@@ -1,6 +1,8 @@
 using System;
 using Godot;
 
+namespace BlueLine;
+
 public partial class Hazmat : CharacterBody3D
 {
     #region Members

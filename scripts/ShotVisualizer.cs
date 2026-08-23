@@ -1,5 +1,7 @@
 using Godot;
 
+namespace BlueLine;
+
 public partial class ShotVisualizer : RigidBody3D
 {
     /// <summary>

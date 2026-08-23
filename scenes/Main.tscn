@@ -4,13 +4,11 @@
 [ext_resource type="Script" uid="uid://df2vifu02qwet" path="res://scripts/MainNode.cs" id="1_rarhs"]
 [ext_resource type="PackedScene" uid="uid://sk5sgyaqwtfa" path="res://scenes/Hazmat.tscn" id="2_rvslj"]
 [ext_resource type="PackedScene" uid="uid://cyeykq4vgjpcy" path="res://scenes/Puck.tscn" id="3_0bbpv"]
-[ext_resource type="FontFile" uid="uid://b6xdhle0vwdgb" path="res://resources/fonts/DS-DIGII.TTF" id="5_vcsgt"]
+[ext_resource type="PackedScene" uid="uid://c03h5rhgbttpf" path="res://scenes/ScoreBoard.tscn" id="3_jlsqs"]
 [ext_resource type="Script" uid="uid://ksf3ndq2he87" path="res://scripts/CameraRig.cs" id="6_c01mt"]
 [ext_resource type="Script" uid="uid://c2mc7ghwqrgy2" path="res://scripts/ShotVisualizer.cs" id="8_jlsqs"]
+[ext_resource type="Script" uid="uid://cnjqkdgdsd4yg" path="res://scripts/Goaltender/Goalie.cs" id="8_lhr70"]
 [ext_resource type="PackedScene" uid="uid://cqemkr86gc23n" path="res://scenes/Goalie.tscn" id="8_q8u5g"]
-
-[sub_resource type="FontVariation" id="FontVariation_hnwdx"]
-base_font = ExtResource("5_vcsgt")
 
 [node name="Main" type="Node" unique_id=351154566 node_paths=PackedStringArray("HomeGoal", "AwayGoal")]
 script = ExtResource("1_rarhs")
@@ -28,54 +26,13 @@ transform = Transform3D(1, 0, 0, 0, -0.7071068, 0.7071067, 0, -0.7071067, -0.707
 
 [node name="UI" type="Node" parent="." unique_id=1792348452]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="UI" unique_id=18550093]
+[node name="Score Board" parent="UI" unique_id=1023751879 instance=ExtResource("3_jlsqs")]
 
-[node name="Home Abbrev" type="Label" parent="UI/CanvasLayer" unique_id=740073740]
-offset_left = 691.0
-offset_right = 840.0
-offset_bottom = 75.0
-theme_override_fonts/font = SubResource("FontVariation_hnwdx")
-theme_override_font_sizes/font_size = 64
-text = "DET -"
-
-[node name="Home Score" type="Label" parent="UI/CanvasLayer" unique_id=235573024]
-offset_left = 836.0
-offset_right = 937.0
-offset_bottom = 75.0
-theme_override_fonts/font = SubResource("FontVariation_hnwdx")
-theme_override_font_sizes/font_size = 64
-text = "00"
-
-[node name="Away Abbrev" type="Label" parent="UI/CanvasLayer" unique_id=980995024]
-offset_left = 993.0
-offset_right = 1142.0
-offset_bottom = 75.0
-theme_override_fonts/font = SubResource("FontVariation_hnwdx")
-theme_override_font_sizes/font_size = 64
-text = "AWY -"
-
-[node name="Away Score" type="Label" parent="UI/CanvasLayer" unique_id=576469994]
-offset_left = 1138.0
-offset_right = 1239.0
-offset_bottom = 75.0
-theme_override_fonts/font = SubResource("FontVariation_hnwdx")
-theme_override_font_sizes/font_size = 64
-text = "00"
-
-[node name="Dash" type="Label" parent="UI/CanvasLayer" unique_id=225786057]
-offset_left = 938.0
-offset_top = -5.0
-offset_right = 968.0
-offset_bottom = 70.0
-theme_override_fonts/font = SubResource("FontVariation_hnwdx")
-theme_override_font_sizes/font_size = 64
-text = "|"
-
-[node name="Hazmat" parent="." unique_id=607509670 node_paths=PackedStringArray("CameraPosition", "AttackingGoal") instance=ExtResource("2_rvslj")]
+[node name="Player" parent="." unique_id=607509670 node_paths=PackedStringArray("CameraPosition", "AttackingGoal") instance=ExtResource("2_rvslj")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 11, 0, 0)
 CameraPosition = NodePath("../Camera Rig/Camera Pos/Camera")
 Speed = 20
-TurnSpeed = 10.0
+TurnSpeed = 8.0
 StoppingAcceleration = 40.0
 ShotSpeed = 70.0
 PassSpeed = 40.0
@@ -85,7 +42,7 @@ SlapshotMultiplier = 1.5
 
 [node name="Camera Rig" type="Node3D" parent="." unique_id=177706517 node_paths=PackedStringArray("Target")]
 script = ExtResource("6_c01mt")
-Target = NodePath("../Hazmat/Model")
+Target = NodePath("../Player/Model")
 
 [node name="Camera Pos" type="Marker3D" parent="Camera Rig" unique_id=1247400554]
 transform = Transform3D(-3.7855173e-08, 0.50000006, -0.86602545, 2.1855694e-08, 0.86602545, 0.50000006, 1, 0, -4.371139e-08, -17, 15, 0)
@@ -102,7 +59,9 @@ Net = NodePath("../Arena/Joe Louis Arena/Goal B")
 
 [node name="Goalie" parent="." unique_id=1075997564 node_paths=PackedStringArray("GoalToDefend") instance=ExtResource("8_q8u5g")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -79.117744, 0.05887556, -0.0067050457)
-GoalToDefend = NodePath("../Arena/Joe Louis Arena/Goal B")
+script = ExtResource("8_lhr70")
+GoalToDefend = NodePath("../Arena/Joe Louis Arena/Goal B/Goal B Target")
+RotationSpeed = 5.0
 
 [node name="Arena" parent="." unique_id=1471467799 instance=ExtResource("1_elqb8")]
 
@@ -121,10 +80,11 @@ transform = Transform3D(1, 5.3290705e-15, -3.1763738e-22, 0, 1.0000006, 7.338583
 [connection signal="body_entered" from="Arena/Joe Louis Arena/Goal B/Goal B Target" to="Arena/Joe Louis Arena/Goal B" method="On_Goal_BodyEntered"]
 [connection signal="body_exited" from="Arena/Joe Louis Arena/Goal B/Goal B Target" to="Arena/Joe Louis Arena/Goal B" method="On_Goal_BodyExited"]
 
-[editable path="Hazmat"]
-[editable path="Hazmat/Model"]
-[editable path="Hazmat/Stick"]
-[editable path="Hazmat/Stick/Model"]
+[editable path="UI/Score Board"]
+[editable path="Player"]
+[editable path="Player/Model"]
+[editable path="Player/Stick"]
+[editable path="Player/Stick/Model"]
 [editable path="Shot Visualizer"]
 [editable path="Arena"]
 [editable path="Arena/Joe Louis Arena"]

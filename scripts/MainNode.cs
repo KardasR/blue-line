@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 using Godot;
 
+namespace BlueLine;
+
 public partial class MainNode : Node
 {
     #region Members
@@ -83,14 +85,14 @@ public partial class MainNode : Node
             throw new InvalidOperationException("Away Goal was not setup. Cannot react to a goal.");
         }
 
+        // setup refs
+        _homeScoreLbl = GetNode<Label>("UI/Score Board/Home Score");
+        _awayScoreLbl = GetNode<Label>("UI/Score Board/Away Score");
+        _shotVisualizer = GetNode<ShotVisualizer>("Shot Visualizer");
+
         // subscribe to events
         HomeGoal.GoalScored += On_GoalScored;
         AwayGoal.GoalScored += On_GoalScored;
-
-        // setup refs
-        _homeScoreLbl = GetNode<Label>("UI/CanvasLayer/Home Score");
-        _awayScoreLbl = GetNode<Label>("UI/CanvasLayer/Away Score");
-        _shotVisualizer = GetNode<ShotVisualizer>("Shot Visualizer");
 
         // create and add the puck to the scene
         // TODO: do this for the player too?
@@ -98,6 +100,7 @@ public partial class MainNode : Node
         _spawnedPuck = puck;
 
         AddChild(puck);
+        GetNode<Goaltender.Goalie>("Goalie").PuckToTrack = puck;
         
         puck.FaceoffLocations = GetNode<Node>("Arena/Faceoff Dots");
         puck.DropThePuck(FaceoffDot.CenterIce);

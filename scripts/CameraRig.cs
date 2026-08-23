@@ -1,5 +1,7 @@
 using Godot;
 
+namespace BlueLine;
+
 public partial class CameraRig : Node3D
 {
     #region Properties
