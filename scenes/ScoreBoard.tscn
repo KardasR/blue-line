@@ -8,6 +8,7 @@ base_font = ExtResource("1_r8h18")
 [node name="ScoreBoard" type="CanvasLayer" unique_id=1023751879]
 
 [node name="Home Abbrev" type="Label" parent="." unique_id=1467878925]
+z_index = 1
 offset_left = 691.0
 offset_right = 840.0
 offset_bottom = 75.0
@@ -16,6 +17,7 @@ theme_override_font_sizes/font_size = 64
 text = "DET -"
 
 [node name="Home Score" type="Label" parent="." unique_id=1060103624]
+z_index = 1
 offset_left = 836.0
 offset_right = 937.0
 offset_bottom = 75.0
@@ -24,6 +26,7 @@ theme_override_font_sizes/font_size = 64
 text = "00"
 
 [node name="Away Abbrev" type="Label" parent="." unique_id=282561384]
+z_index = 1
 offset_left = 993.0
 offset_right = 1142.0
 offset_bottom = 75.0
@@ -32,6 +35,7 @@ theme_override_font_sizes/font_size = 64
 text = "AWY -"
 
 [node name="Away Score" type="Label" parent="." unique_id=477242865]
+z_index = 1
 offset_left = 1138.0
 offset_right = 1239.0
 offset_bottom = 75.0
@@ -40,6 +44,7 @@ theme_override_font_sizes/font_size = 64
 text = "00"
 
 [node name="Dash" type="Label" parent="." unique_id=468225480]
+z_index = 1
 offset_left = 938.0
 offset_top = -5.0
 offset_right = 968.0
@@ -47,3 +52,17 @@ offset_bottom = 70.0
 theme_override_fonts/font = SubResource("FontVariation_dp7gr")
 theme_override_font_sizes/font_size = 64
 text = "|"
+
+[node name="Away Color" type="ColorRect" parent="." unique_id=1013353728]
+offset_left = 947.0
+offset_top = 2.0
+offset_right = 1230.0
+offset_bottom = 64.0
+color = Color(0.21176471, 0.21176471, 0.21176471, 0.79607844)
+
+[node name="Home Color" type="ColorRect" parent="." unique_id=1554795667]
+offset_left = 673.0
+offset_top = 2.0
+offset_right = 947.0
+offset_bottom = 64.0
+color = Color(0.78431374, 0.0627451, 0.18039216, 0.79607844)

@@ -2,6 +2,8 @@ namespace BlueLine.Goaltender;
 
 public class GoalieSavingState : GoalieState
 {
+    // TODO: this will be used when I start adding animations
+
     public GoalieSavingState(Goalie goalie)
         : base(goalie)
     {

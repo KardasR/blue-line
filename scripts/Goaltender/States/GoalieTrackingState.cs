@@ -15,4 +15,6 @@ public class GoalieTrackingState : GoalieState
         Goalie.TrackThePuck(delta);
         Goalie.StaySquareToPuck(delta);
     }
+
+    //TODO: eventually we also want to detect when a shot is made then switch to the saving state.
 }

@@ -52,6 +52,8 @@ public partial class MainNode : Node
 
     #region Events
 
+    public event EventHandler FaceoffStarted;
+
     /// <summary>
     /// React to a goal being scored.
     /// </summary>
@@ -147,6 +149,8 @@ public partial class MainNode : Node
         _shotVisualizer.GoalScored = true;
 
         await ToSignal(GetTree().CreateTimer(ResetTimer), SceneTreeTimer.SignalName.Timeout);
+
+        FaceoffStarted.Invoke(this, new EventArgs());
 
         _shotVisualizer.GoalScored = false;
         _spawnedPuck.DropThePuck(FaceoffDot.CenterIce);

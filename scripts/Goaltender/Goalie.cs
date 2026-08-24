@@ -1,5 +1,6 @@
 using System;
 using Godot;
+using GodotPlugins.Game;
 
 namespace BlueLine.Goaltender
 {
@@ -27,22 +28,72 @@ namespace BlueLine.Goaltender
         public Node3D GoalToDefend { get; set; }
 
         /// <summary>
+        /// 
+        /// </summary>
+        [Export]
+        public Goal Net { get; set; }
+
+        #region Tracking
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Export]
+        public float MaxDepth { get; set; } = 11;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Export]
+        public Node3D LeftMostPos { get; set; }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        [Export]
+        public Node3D RightMostPos { get; set; }
+
+        #endregion Tracking
+
+        #region Skating
+
+        /// <summary>
         /// How fast the goalie rotates to face the puck.
         /// </summary>
         [Export]
         public float RotationSpeed { get; set; } = 5.0f;
 
-        // /// <summary>
-        // /// Maximum distance that the goalie will move.
-        // /// </summary>
-        // [Export]
-        // public float MaxGoalieDepth { get; set; } = 3.0f;
+        /// <summary>
+        /// 
+        /// </summary>
+        [Export]
+        public float Speed { get; set; } = 20.0f;
 
-        // /// <summary>
-        // /// How far to the sides the goalie will move.
-        // /// </summary>
-        // [Export]
-        // public float MaxGoalieLateral { get; set; } = 2.0f;
+        /// <summary>
+        /// 
+        /// </summary>
+        [Export]
+        public float Acceleration { get; set; } = 20.0f;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Export]
+        public float StoppingAcceleration { get; set; } = 40.0f;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Export]
+        public float IceFriction { get; set; } = 3.0f;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Export]
+        public float PositionTolerance { get; set; } = 0.1f;
+
+        #endregion Skating
 
         #endregion Properties
 
@@ -50,13 +101,22 @@ namespace BlueLine.Goaltender
 
         public override void _Ready()
         {
-            _stateMachine = new GoalieStateMachine();
+            if (Net == null)
+            {
+                throw new InvalidOperationException("No net was given. Cannot detect any goals");
+            }
+            if (Owner is not MainNode)
+            {
+                throw new InvalidCastException($"Owner is not a MainNode. It's a : {Owner.GetType()}");
+            }
 
-            _stateMachine.ChangeState(
-                new GoalieTrackingState(this)
-            );
+            Net.GoalScored += OnGoalScored;
+            (Owner as MainNode).FaceoffStarted += OnFaceoffStarted;            
 
             _groundPosY = GlobalPosition.Y;
+            _stateMachine = new GoalieStateMachine();
+
+            ChangeState(new GoalieTrackingState(this));
         }
 
         public override void _PhysicsProcess(double delta)
@@ -65,6 +125,20 @@ namespace BlueLine.Goaltender
         }
 
         #endregion Override
+
+        #region Events
+
+        private void OnGoalScored(object sender, EventArgs e)
+        {
+            ChangeState(new GoalieIdleState(this));
+        }
+
+        private void OnFaceoffStarted(object sender, EventArgs e)
+        {
+            ChangeState(new GoalieTrackingState(this));
+        }
+
+        #endregion Events
 
         #region Public Methods
 
@@ -78,21 +152,84 @@ namespace BlueLine.Goaltender
             {
                 throw new InvalidOperationException("No goal to defend was given. The goalie will not be able to adjust their position.");
             }
-
+            if (LeftMostPos == null)
+            {
+                throw new InvalidOperationException("No left most position was given. Cannot move goalie");
+            }
+            if (RightMostPos == null)
+            {
+                throw new InvalidOperationException("No right most position was given. Cannot move goalie");
+            }
             //TODO: calculate the goaliedepth based on how far away the puck is.
             float goalieDepth = 8.0f;
 
             Vector3 direction = (PuckToTrack.GlobalPosition - GoalToDefend.GlobalPosition).Normalized();
             Vector3 point = GoalToDefend.GlobalPosition + direction * goalieDepth;
 
-            //TODO: the goalie should be a little slow to shuffle side to side
+            //TODO: This needs to properly work for both goalies
+            // constrain depth
+            point.X = Mathf.Clamp(point.X, GoalToDefend.GlobalPosition.X, MaxDepth);
 
+            // constrain horizontal
+            point.Z = Mathf.Clamp(point.Z, LeftMostPos.GlobalPosition.Z, RightMostPos.GlobalPosition.Z);
 
-            // make sure the goalie stays on the ice
-            point.X = GlobalPosition.X > 0 ? Mathf.Min(GoalToDefend.GlobalPosition.X, point.X) : Mathf.Max(GoalToDefend.GlobalPosition.X, point.X);
-            point.Y = _groundPosY;
+            //point.X = GlobalPosition.X > 0 ? Mathf.Min(GoalToDefend.GlobalPosition.X, point.X) : Mathf.Max(GoalToDefend.GlobalPosition.X, point.X);
+            
+            //GlobalPosition = point;
 
-            GlobalPosition = point;
+            Vector3 horizontalVelocity = new Vector3(
+                Velocity.X,
+                0,
+                Velocity.Z
+            );
+
+            Vector3 movementDirection = point - GlobalPosition;
+            movementDirection.Y = _groundPosY;
+
+            if (movementDirection.Length() > PositionTolerance)
+            {
+                // make sure the goalie stays on the ice
+                movementDirection = movementDirection.Normalized();
+
+                Vector3 desiredVelocity = movementDirection * Speed;
+
+                float accel = Acceleration;
+
+                // Are we trying to move against our current momentum?
+                if (horizontalVelocity.Dot(movementDirection) < 0)
+                {
+                    accel = StoppingAcceleration;
+                }
+
+                horizontalVelocity = horizontalVelocity.MoveToward(
+                    desiredVelocity,
+                    accel * (float)delta
+                );
+            }
+            else
+            {
+                horizontalVelocity = horizontalVelocity.MoveToward(
+                    Vector3.Zero,
+                    IceFriction * StoppingAcceleration * (float)delta
+                );
+            }
+
+            Velocity = new Vector3(
+                horizontalVelocity.X,
+                Velocity.Y,
+                horizontalVelocity.Z
+            );
+
+            if (!IsOnFloor())
+            {
+                Velocity = new Vector3(
+                    Velocity.X,
+                    Velocity.Y - 75f * (float)delta,
+                    Velocity.Z
+                );
+            }
+
+            MoveAndSlide();
         }
 
         /// <summary>
@@ -124,6 +261,7 @@ namespace BlueLine.Goaltender
                 direction.Z
             );
 
+            //TODO: clamp between a min and max angle so the goalie doesn't fully turn around.
             Rotation = new Vector3(
                 0,
                 Mathf.LerpAngle(
@@ -133,6 +271,16 @@ namespace BlueLine.Goaltender
                 ),
                 0
             );
+        }
+
+        public void StopMovement()
+        {
+            Velocity = Vector3.Zero;
+        }
+
+        public void PrepareForFaceoff(FaceoffDot faceoffDot)
+        {
+            // TODO: lineup facing where the faceoff will be
         }
 
         public void BeginSave()
