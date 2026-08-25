@@ -1,6 +1,9 @@
 using System;
 using System.Threading.Tasks;
+
 using Godot;
+
+using BlueLine.Goaltender;
 
 namespace BlueLine;
 
@@ -34,13 +37,13 @@ public partial class MainNode : Node
     /// Home Goal.
     /// </summary>
     [Export]
-    public Goal HomeGoal { get; set; }
+    public Net HomeNet { get; set; }
 
     /// <summary>
     /// Away Goal.
     /// </summary>
     [Export]
-    public Goal AwayGoal { get; set; }
+    public Net AwayNet { get; set; }
 
     /// <summary>
     /// How long until the game respawns the puck after a goal.
@@ -61,10 +64,10 @@ public partial class MainNode : Node
     /// <param name="e"></param>
     public void On_GoalScored(object sender, EventArgs e)
     {
-        if (sender is Goal goal)
+        if (sender is Net goal)
         {
             // home goal in the passed in context is referring to the net. Here it refers to an actual goal scored so we want to reverse the bool here.
-            GoalScored(!goal.HomeGoal);
+            GoalScored(!goal.HomeNet);
         }
     }
 
@@ -78,11 +81,11 @@ public partial class MainNode : Node
         {
             throw new InvalidOperationException("Puck Scene was not given. Cannot spawn puck");
         }
-        if (HomeGoal == null)
+        if (HomeNet == null)
         {
             throw new InvalidOperationException("Home Goal was not setup. Cannot react to a goal.");
         }
-        if (AwayGoal == null)
+        if (AwayNet == null)
         {
             throw new InvalidOperationException("Away Goal was not setup. Cannot react to a goal.");
         }
@@ -93,8 +96,8 @@ public partial class MainNode : Node
         _shotVisualizer = GetNode<ShotVisualizer>("Shot Visualizer");
 
         // subscribe to events
-        HomeGoal.GoalScored += On_GoalScored;
-        AwayGoal.GoalScored += On_GoalScored;
+        HomeNet.GoalScored += On_GoalScored;
+        AwayNet.GoalScored += On_GoalScored;
 
         // create and add the puck to the scene
         // TODO: do this for the player too?
@@ -102,7 +105,7 @@ public partial class MainNode : Node
         _spawnedPuck = puck;
 
         AddChild(puck);
-        GetNode<Goaltender.Goalie>("Goalie").PuckToTrack = puck;
+        GetNode<Goalie>("Goalie").PuckToTrack = puck;
         
         puck.FaceoffLocations = GetNode<Node>("Arena/Faceoff Dots");
         puck.DropThePuck(FaceoffDot.CenterIce);
@@ -150,7 +153,7 @@ public partial class MainNode : Node
 
         await ToSignal(GetTree().CreateTimer(ResetTimer), SceneTreeTimer.SignalName.Timeout);
 
-        FaceoffStarted.Invoke(this, new EventArgs());
+        FaceoffStarted.Invoke(this, EventArgs.Empty);
 
         _shotVisualizer.GoalScored = false;
         _spawnedPuck.DropThePuck(FaceoffDot.CenterIce);

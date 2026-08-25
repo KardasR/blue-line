@@ -115,6 +115,8 @@ public partial class Puck : RigidBody3D
             case FaceoffDot.AwayBenchNeutral:
                 faceoffLocation = FaceoffLocations.GetNode<Node3D>("Away Bench Neutral").GlobalPosition;
                 break;
+            default:
+                throw new NotSupportedException($"Faceoff Location: {faceoffDot} is not setup properly. Cannot drop puck");
         }
         
         GlobalPosition = faceoffLocation;

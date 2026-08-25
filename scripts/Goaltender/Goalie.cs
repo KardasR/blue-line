@@ -16,6 +16,12 @@ namespace BlueLine.Goaltender
 
         #region Properties
 
+        [Export]
+        public PlayerAttributes Attributes { get; set; }
+
+        [Export]
+        public WorldAttributes WorldAttributes { get; set; }
+
         /// <summary>
         /// The puck that the goalie tries to save.
         /// </summary>
@@ -28,72 +34,26 @@ namespace BlueLine.Goaltender
         public Node3D GoalToDefend { get; set; }
 
         /// <summary>
-        /// 
+        /// Which net the goalie is guarding.
         /// </summary>
         [Export]
-        public Goal Net { get; set; }
+        public Net Net { get; set; }
 
         #region Tracking
 
         /// <summary>
-        /// 
-        /// </summary>
-        [Export]
-        public float MaxDepth { get; set; } = 11;
-
-        /// <summary>
-        /// 
+        /// How far to the left the goalie will move.
         /// </summary>
         [Export]
         public Node3D LeftMostPos { get; set; }
         
         /// <summary>
-        /// 
+        /// How far to the right the goalie will move.
         /// </summary>
         [Export]
         public Node3D RightMostPos { get; set; }
 
         #endregion Tracking
-
-        #region Skating
-
-        /// <summary>
-        /// How fast the goalie rotates to face the puck.
-        /// </summary>
-        [Export]
-        public float RotationSpeed { get; set; } = 5.0f;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Export]
-        public float Speed { get; set; } = 20.0f;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Export]
-        public float Acceleration { get; set; } = 20.0f;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Export]
-        public float StoppingAcceleration { get; set; } = 40.0f;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Export]
-        public float IceFriction { get; set; } = 3.0f;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Export]
-        public float PositionTolerance { get; set; } = 0.1f;
-
-        #endregion Skating
 
         #endregion Properties
 
@@ -108,6 +68,14 @@ namespace BlueLine.Goaltender
             if (Owner is not MainNode)
             {
                 throw new InvalidCastException($"Owner is not a MainNode. It's a : {Owner.GetType()}");
+            }
+            if (Attributes == null)
+            {
+                throw new InvalidOperationException("Player attributes were not given. Cannot do anything.");
+            }
+            if (WorldAttributes == null)
+            {
+                throw new InvalidOperationException("World Attributes was not given. Cannot skate");
             }
 
             Net.GoalScored += OnGoalScored;
@@ -167,15 +135,10 @@ namespace BlueLine.Goaltender
             Vector3 point = GoalToDefend.GlobalPosition + direction * goalieDepth;
 
             //TODO: This needs to properly work for both goalies
-            // constrain depth
-            point.X = Mathf.Clamp(point.X, GoalToDefend.GlobalPosition.X, MaxDepth);
 
-            // constrain horizontal
+            // constrain depth and horizontal
+            point.X = Mathf.Clamp(point.X, GoalToDefend.GlobalPosition.X, Attributes.MaxDepth);
             point.Z = Mathf.Clamp(point.Z, LeftMostPos.GlobalPosition.Z, RightMostPos.GlobalPosition.Z);
-
-            //point.X = GlobalPosition.X > 0 ? Mathf.Min(GoalToDefend.GlobalPosition.X, point.X) : Mathf.Max(GoalToDefend.GlobalPosition.X, point.X);
-            
-            //GlobalPosition = point;
 
             Vector3 horizontalVelocity = new Vector3(
                 Velocity.X,
@@ -186,19 +149,19 @@ namespace BlueLine.Goaltender
             Vector3 movementDirection = point - GlobalPosition;
             movementDirection.Y = _groundPosY;
 
-            if (movementDirection.Length() > PositionTolerance)
+            if (movementDirection.Length() > Attributes.PositionTolerance)
             {
                 // make sure the goalie stays on the ice
                 movementDirection = movementDirection.Normalized();
 
-                Vector3 desiredVelocity = movementDirection * Speed;
+                Vector3 desiredVelocity = movementDirection * Attributes.SkatingSpeed;
 
-                float accel = Acceleration;
+                float accel = Attributes.Acceleration;
 
                 // Are we trying to move against our current momentum?
                 if (horizontalVelocity.Dot(movementDirection) < 0)
                 {
-                    accel = StoppingAcceleration;
+                    accel = Attributes.Deceleration;
                 }
 
                 horizontalVelocity = horizontalVelocity.MoveToward(
@@ -210,7 +173,7 @@ namespace BlueLine.Goaltender
             {
                 horizontalVelocity = horizontalVelocity.MoveToward(
                     Vector3.Zero,
-                    IceFriction * StoppingAcceleration * (float)delta
+                    WorldAttributes.IceFriction * Attributes.Deceleration * (float)delta
                 );
             }
 
@@ -267,7 +230,7 @@ namespace BlueLine.Goaltender
                 Mathf.LerpAngle(
                     Rotation.Y,
                     targetAngle,
-                    RotationSpeed * (float)delta
+                    Attributes.TurnSpeed * (float)delta
                 ),
                 0
             );

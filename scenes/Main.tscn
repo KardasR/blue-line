@@ -9,11 +9,11 @@
 [ext_resource type="Script" uid="uid://c2mc7ghwqrgy2" path="res://scripts/ShotVisualizer.cs" id="8_jlsqs"]
 [ext_resource type="PackedScene" uid="uid://cqemkr86gc23n" path="res://scenes/Goalie.tscn" id="8_q8u5g"]
 
-[node name="Main" type="Node" unique_id=351154566 node_paths=PackedStringArray("HomeGoal", "AwayGoal")]
+[node name="Main" type="Node" unique_id=351154566 node_paths=PackedStringArray("HomeNet", "AwayNet")]
 script = ExtResource("1_rarhs")
 PuckScene = ExtResource("3_0bbpv")
-HomeGoal = NodePath("Arena/Joe Louis Arena/Goal A")
-AwayGoal = NodePath("Arena/Joe Louis Arena/Goal B")
+HomeNet = NodePath("Arena/Joe Louis Arena/Goal A")
+AwayNet = NodePath("Arena/Joe Louis Arena/Goal B")
 
 [node name="Lighting" type="Node" parent="." unique_id=188668628]
 
@@ -29,6 +29,8 @@ transform = Transform3D(1, 0, 0, 0, -0.7071068, 0.7071067, 0, -0.7071067, -0.707
 
 [node name="Player" parent="." unique_id=607509670 node_paths=PackedStringArray("CameraPosition", "AttackingGoal") instance=ExtResource("2_rvslj")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 11, 0, 0)
+collision_layer = 2
+collision_mask = 127
 CameraPosition = NodePath("../Camera Rig/Camera Pos/Camera")
 Speed = 20
 TurnSpeed = 4.0
@@ -38,6 +40,13 @@ PassSpeed = 40.0
 AttackingGoal = NodePath("../Arena/Joe Louis Arena/Goal B")
 SlapshotThreshold = 15
 SlapshotMultiplier = 1.5
+StickHandleRange = 1.0
+StickHandleSpeed = 10.0
+ShotDeadzone = 0.5
+
+[node name="Collision Shapes" parent="Player/Stick" parent_id_path=PackedInt32Array(607509670, 1100160809) index="1" unique_id=1679342200]
+collision_layer = 64
+collision_mask = 4
 
 [node name="Camera Rig" type="Node3D" parent="." unique_id=177706517 node_paths=PackedStringArray("Target")]
 script = ExtResource("6_c01mt")
@@ -50,14 +59,16 @@ transform = Transform3D(-3.7855173e-08, 0.50000006, -0.86602545, 2.1855694e-08, 
 transform = Transform3D(-1, -5.856222e-09, 9.756606e-08, 8.1566576e-08, 0.5000001, 0.86602557, -5.3854656e-08, 0.86602557, -0.49999988, -1.2492206e-06, 16.5, -28.578836)
 
 [node name="Shot Visualizer" parent="." unique_id=265332890 node_paths=PackedStringArray("Net") instance=ExtResource("3_0bbpv")]
-transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, -79.77781, 1.3931377, 1.7437139)
-collision_layer = 2
-collision_mask = 2
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, -81.179825, 1.3931377, 1.7437139)
+collision_layer = 0
+collision_mask = 0
 script = ExtResource("8_jlsqs")
 Net = NodePath("../Arena/Joe Louis Arena/Goal B")
 
 [node name="Goalie" parent="." unique_id=1075997564 node_paths=PackedStringArray("GoalToDefend", "Net", "LeftMostPos", "RightMostPos") instance=ExtResource("8_q8u5g")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -79.117744, 0.05887556, -0.0067050457)
+collision_layer = 32
+collision_mask = 23
 GoalToDefend = NodePath("../Arena/Joe Louis Arena/Goal B/Goal B Target")
 Net = NodePath("../Arena/Joe Louis Arena/Goal B")
 LeftMostPos = NodePath("../Arena/Joe Louis Arena/Goal B/Left Goalie")
@@ -70,13 +81,26 @@ PositionTolerance = 0.5
 
 [node name="Goal A" parent="Arena/Joe Louis Arena" parent_id_path=PackedInt32Array(1471467799, 2048491058) index="9" unique_id=56669343 node_paths=PackedStringArray("AimTarget")]
 AimTarget = NodePath("Goal A Target")
-HomeGoal = true
+
+[node name="Posts" parent="Arena/Joe Louis Arena/Goal A" index="0" unique_id=921068731]
+collision_layer = 16
+collision_mask = 63
+
+[node name="Goal A Target" parent="Arena/Joe Louis Arena/Goal A" index="1" unique_id=239333195]
+collision_layer = 64
+collision_mask = 4
 
 [node name="Goal B" parent="Arena/Joe Louis Arena" parent_id_path=PackedInt32Array(1471467799, 2048491058) index="10" unique_id=489359712 node_paths=PackedStringArray("AimTarget")]
 AimTarget = NodePath("Goal B Target")
 
+[node name="Posts" parent="Arena/Joe Louis Arena/Goal B" index="0" unique_id=1541894887]
+collision_layer = 16
+collision_mask = 63
+
 [node name="Goal B Target" parent="Arena/Joe Louis Arena/Goal B" index="1" unique_id=317831128]
 transform = Transform3D(1, 5.3290705e-15, -3.1763738e-22, 0, 1.0000006, 7.338583e-27, 0, -1.5987164e-14, 1.0000006, 0, 1.651, -0.35)
+collision_layer = 64
+collision_mask = 4
 
 [node name="CollisionShape3D" parent="Arena/Joe Louis Arena/Protective Net/StaticBody3D" parent_id_path=PackedInt32Array(1471467799, 320561198) index="0" unique_id=6529888]
 disabled = true

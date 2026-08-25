@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://sk5sgyaqwtfa"]
 
-[ext_resource type="Script" uid="uid://ip2l4yfdyi0p" path="res://scripts/Hazmat.cs" id="1_8j6c8"]
+[ext_resource type="Script" uid="uid://ip2l4yfdyi0p" path="res://scripts/Skaters/Hazmat.cs" id="1_8j6c8"]
 [ext_resource type="PackedScene" uid="uid://nc5u33h7dqkj" path="res://models/Hazmat/HazmatSuitPose.fbx" id="1_uy6rq"]
 [ext_resource type="PackedScene" uid="uid://s2bh3ifjrhqs" path="res://scenes/Stick.tscn" id="2_xp1fp"]
 

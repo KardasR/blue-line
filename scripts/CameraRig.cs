@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace BlueLine;
@@ -30,7 +31,7 @@ public partial class CameraRig : Node3D
     {
         if (Target == null)
         {
-            return;
+            throw new InvalidOperationException("A target was not setup with the camera. Cannot follow anything");
         }
 
         GlobalPosition = GlobalPosition.Lerp(

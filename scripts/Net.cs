@@ -3,7 +3,7 @@ using Godot;
 
 namespace BlueLine;
 
-public partial class Goal : MeshInstance3D
+public partial class Net : MeshInstance3D
 {
     #region Members
 
@@ -41,7 +41,7 @@ public partial class Goal : MeshInstance3D
     /// Is this the home goal?
     /// </summary>
     [Export]
-    public bool HomeGoal { get; set; }
+    public bool HomeNet { get; set; }
 
     #endregion Properties
 
@@ -51,23 +51,29 @@ public partial class Goal : MeshInstance3D
 
     public void On_Goal_BodyEntered(Node3D body)
     {
+        GD.Print("Body detected");
         if (body is Puck puck)
         {
+            GD.Print("puck entering");
+
             _puckX = puck.GlobalPosition.X;
         }
     }
 
     public void On_Goal_BodyExited(Node3D body)
     {
+        GD.Print("Body leaving");
         if (body is Puck puck)
         {
-            if ((HomeGoal &&
+            GD.Print("puck exiting");
+
+            if ((HomeNet &&
                     puck.GlobalPosition.X > _puckX) ||
-                (!HomeGoal &&
+                (!HomeNet &&
                     puck.GlobalPosition.X < _puckX))
             {
                 // a goal has been scored.
-                GoalScored.Invoke(this, new EventArgs());
+                GoalScored.Invoke(this, EventArgs.Empty);
             }
 
             _puckX = 0;
@@ -122,13 +128,10 @@ public partial class Goal : MeshInstance3D
             }
         }
 
-        float x = -aim.X * (Width / 2.0f);
-        float z = -aim.Y * (Height / 2.0f);
-
         Vector3 localPoint = new Vector3(
-            x,
+            -aim.X * (Width / 2.0f),
             0,
-            z
+            -aim.Y * (Height / 2.0f)
         );
 
         return AimTarget.GlobalTransform * localPoint;

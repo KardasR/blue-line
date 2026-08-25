@@ -17,55 +17,21 @@ public partial class Hazmat : CharacterBody3D
 
     #region Properties
 
+    [Export]
+    public PlayerAttributes Attributes { get; set; }
+
+    [Export]
+    public WorldAttributes WorldAttributes { get; set; }
+
     #region Camera Settings
 
     /// <summary> 
     /// Position of where the camera is in the game.
     /// </summary> 
-    [Export] 
+    [Export]
     Camera3D CameraPosition { get; set; }
 
     #endregion Camera Settings
-
-    #region Movement Settings
-
-    /// <summary> 
-    /// How fast the player moves in meters per second.
-    /// </summary> 
-    [Export] 
-    public int Speed { get; set; } = 14;
-
-    /// <summary> 
-    /// The downward acceleration when in the air, in meters per second squared.
-    /// </summary> 
-    [Export] 
-    public uint FallAcceleration { get; set; } = 75;
-
-    /// <summary> 
-    /// Controls how fast the player turns.
-    /// </summary> 
-    [Export] 
-    public float TurnSpeed { get; set; } = 0.01f;
-
-    /// <summary>
-    /// How quick the player comes up to speed;
-    /// </summary>
-    [Export]
-    public float Acceleration { get; set; } = 20.0f;
-
-    /// <summary>
-    /// How much the player slows due to ice.
-    /// </summary>
-    [Export]
-    public float IceFriction { get; set; } = 3.0f;
-
-    /// <summary>
-    /// How quick the player will come to a stop when going against their movement.
-    /// </summary>
-    [Export]
-    public float StoppingAcceleration { get; set; } = 60.0f;
-
-    #endregion Movement Settings
 
     #region Puck Settings
 
@@ -76,34 +42,10 @@ public partial class Hazmat : CharacterBody3D
     public Node3D PuckHoldPoint { get; set; }
 
     /// <summary>
-    /// How hard the player shoots.
-    /// </summary>
-    [Export]
-    public float ShotSpeed { get; set; } = 40.0f;
-
-    /// <summary>
-    /// How hard the player passes the puck.
-    /// </summary>
-    [Export]
-    public float PassSpeed { get; set; } = 20.0f;
-
-    /// <summary>
     /// Which goal the player is shooting at.
     /// </summary>
     [Export]
-    public Goal AttackingGoal { get; set; }
-
-    /// <summary>
-    /// How long a user has to hold the shoot button to take a slapshot.
-    /// </summary>
-    [Export]
-    public uint SlapshotThreshold { get; set; }
-
-    /// <summary>
-    /// What to multiply a players typical shot speed by to get a slapshot speed.
-    /// </summary>
-    [Export]
-    public float SlapshotMultiplier { get; set; }
+    public Net AttackingGoal { get; set; }
 
     #endregion Puck Settings
 
@@ -113,11 +55,6 @@ public partial class Hazmat : CharacterBody3D
     
     public void On_Blade_BodyEntered(Node3D body)
     {
-        if (PuckHoldPoint == null)
-        {
-            throw new InvalidOperationException("No puck hold point was given. Puck cannot be grabbed.");
-        }
-
         if (body is Puck puck && _heldPuck == null)
         {
             puck.Grab(PuckHoldPoint);
@@ -129,6 +66,27 @@ public partial class Hazmat : CharacterBody3D
 
     #region Overrides
 
+    public override void _Ready()
+    {
+        if (Attributes == null)
+        {
+            throw new InvalidOperationException("Player attributes were not given. Cannot do anything.");
+        }
+        if (WorldAttributes == null)
+        {
+            throw new InvalidOperationException("World Attributes was not given. Cannot skate");
+        }
+        if (PuckHoldPoint == null)
+        {
+            throw new InvalidOperationException("No puck hold point was given. Puck cannot be grabbed.");
+        }
+        if (AttackingGoal == null)
+        {
+            throw new InvalidOperationException("No attacking goal was given. Cannot shoot on goal.");
+        }
+    }
+
+
     /// <summary>
     /// Checks if an input action has been pressed and responds accordingly
     /// </summary>
@@ -136,22 +94,29 @@ public partial class Hazmat : CharacterBody3D
     public override void _PhysicsProcess(double delta) 
     { 
         // create a vector2 out of the inputs 
-        Vector2 input = Input.GetVector( 
+        Vector2 leftStick = Input.GetVector( 
             "move_left", 
             "move_right", 
             "move_forward", 
             "move_backward" 
         ); 
+        Vector2 rightStick = Input.GetVector(
+            "deke_right",
+            "deke_left",
+            "deke_down",
+            "deke_up"
+        );
         
-        MovePlayer(delta, input);
-        CheckForPuckAction(input);
+        MovePlayer(delta, leftStick);
+        StickHandle(delta, rightStick);
+        CheckForPuckAction(leftStick, rightStick);
     } 
 
     #endregion Overrides
 
     #region Private Methods
 
-    private void CheckForPuckAction(Vector2 aim)
+    private void CheckForPuckAction(Vector2 aim, Vector2 dangle)
     {
         if (_heldPuck == null)
             return;
@@ -161,13 +126,15 @@ public partial class Hazmat : CharacterBody3D
             _takingShot = true;
             _shotTimer = 0;
         }
-        if (Input.IsActionPressed("shoot"))
+        if (Input.IsActionPressed("shoot") ||
+            dangle.Y < -WorldAttributes.ShotDeadzone)
         {
             _shotTimer += 1;
         }
-        if (Input.IsActionJustReleased("shoot"))
+        if (Input.IsActionJustReleased("shoot") ||
+            dangle.Y > WorldAttributes.ShotDeadzone)
         {
-            float speed = _shotTimer >= SlapshotThreshold ? ShotSpeed * SlapshotMultiplier : ShotSpeed;
+            float speed = _shotTimer >= WorldAttributes.SlapshotThreshold ? Attributes.ShotSpeed * Attributes.SlapshotMultiplier : Attributes.ShotSpeed;
 
             _heldPuck.Shoot(AttackingGoal.GetTargetPoint(aim), speed);
 
@@ -177,10 +144,27 @@ public partial class Hazmat : CharacterBody3D
 
         if (Input.IsActionPressed("pass"))
         {
-            _heldPuck.Shoot(Velocity, PassSpeed);
+            _heldPuck.Shoot(Velocity, Attributes.PassSpeed);
 
             _heldPuck = null;
         }
+    }
+
+    private void StickHandle(double delta, Vector2 input)
+    {
+        if (_heldPuck == null)
+            return;
+
+        Vector3 offset = PuckHoldPoint.GlobalTransform.Basis.X * input.X;
+
+        offset = offset.LimitLength(Attributes.StickHandleRange);
+
+        Vector3 targetPosition = PuckHoldPoint.GlobalPosition + offset;
+
+        _heldPuck.GlobalPosition = _heldPuck.GlobalPosition.Lerp(
+            targetPosition,
+            Attributes.StickHandleSpeed * (float)delta
+        );
     }
 
     private void MovePlayer(double delta, Vector2 input)
@@ -214,7 +198,7 @@ public partial class Hazmat : CharacterBody3D
                 Mathf.LerpAngle(
                     Rotation.Y,
                     targetAngle,
-                    TurnSpeed * (float)delta
+                    Attributes.TurnSpeed * (float)delta
                 ),
                 Rotation.Z
             );
@@ -228,14 +212,14 @@ public partial class Hazmat : CharacterBody3D
 
         if (direction != Vector3.Zero)
         {
-            Vector3 desiredVelocity = direction * Speed;
+            Vector3 desiredVelocity = direction * Attributes.SkatingSpeed;
 
-            float accel = Acceleration;
+            float accel = Attributes.Acceleration;
 
             // Are we trying to move against our current momentum?
             if (horizontalVelocity.Dot(direction) < 0)
             {
-                accel = StoppingAcceleration;
+                accel = Attributes.Deceleration;
             }
 
             horizontalVelocity = horizontalVelocity.MoveToward(
@@ -247,7 +231,7 @@ public partial class Hazmat : CharacterBody3D
         {
             horizontalVelocity = horizontalVelocity.MoveToward(
                 Vector3.Zero,
-                IceFriction * (float)delta
+                WorldAttributes.IceFriction * (float)delta
             );
         }
 
@@ -261,7 +245,7 @@ public partial class Hazmat : CharacterBody3D
         {
             Velocity = new Vector3(
                 Velocity.X,
-                Velocity.Y - FallAcceleration * (float)delta,
+                Velocity.Y - WorldAttributes.FallAcceleration * (float)delta,
                 Velocity.Z
             );
         }
