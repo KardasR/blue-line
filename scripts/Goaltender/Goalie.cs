@@ -1,6 +1,8 @@
 using System;
 using Godot;
-using GodotPlugins.Game;
+
+using BlueLine.Management;
+using BlueLine.FrozenRubber;
 
 namespace BlueLine.Goaltender
 {
@@ -32,13 +34,6 @@ namespace BlueLine.Goaltender
         /// </summary>
         [Export]
         public Node3D GoalToDefend { get; set; }
-
-        /// <summary>
-        /// Which net the goalie is guarding.
-        /// </summary>
-        [Export]
-        public Net Net { get; set; }
-
         #region Tracking
 
         /// <summary>
@@ -61,10 +56,6 @@ namespace BlueLine.Goaltender
 
         public override void _Ready()
         {
-            if (Net == null)
-            {
-                throw new InvalidOperationException("No net was given. Cannot detect any goals");
-            }
             if (Owner is not MainNode)
             {
                 throw new InvalidCastException($"Owner is not a MainNode. It's a : {Owner.GetType()}");
@@ -78,13 +69,23 @@ namespace BlueLine.Goaltender
                 throw new InvalidOperationException("World Attributes was not given. Cannot skate");
             }
 
-            Net.GoalScored += OnGoalScored;
-            (Owner as MainNode).FaceoffStarted += OnFaceoffStarted;            
+            GameEvents.Instance.GoalScored += OnGoalScored;
+            GameEvents.Instance.PrepareFaceoff += OnPrepareForFaceoff;
+            GameEvents.Instance.PuckDropped += OnPuckDrop;
+            GameEvents.Instance.ShotFired += OnShotFired;
 
             _groundPosY = GlobalPosition.Y;
             _stateMachine = new GoalieStateMachine();
 
-            ChangeState(new GoalieTrackingState(this));
+            _stateMachine.ChangeState(new GoalieTrackingState(this));
+        }
+
+        public override void _ExitTree()
+        {
+            GameEvents.Instance.GoalScored -= OnGoalScored;
+            GameEvents.Instance.PrepareFaceoff -= OnPrepareForFaceoff;
+            GameEvents.Instance.PuckDropped -= OnPuckDrop;
+            GameEvents.Instance.ShotFired -= OnShotFired;
         }
 
         public override void _PhysicsProcess(double delta)
@@ -96,12 +97,22 @@ namespace BlueLine.Goaltender
 
         #region Events
 
-        private void OnGoalScored(object sender, EventArgs e)
+        private void OnShotFired(Vector3 direction, float force)
+        {
+            
+        }
+
+        private void OnGoalScored(bool isHomeGoal)
         {
             ChangeState(new GoalieIdleState(this));
         }
 
-        private void OnFaceoffStarted(object sender, EventArgs e)
+        private void OnPrepareForFaceoff(FaceoffDot dot)
+        {
+            ChangeState(new GoalieTrackingState(this));
+        }
+
+        private void OnPuckDrop(FaceoffDot dot)
         {
             ChangeState(new GoalieTrackingState(this));
         }
@@ -257,15 +268,15 @@ namespace BlueLine.Goaltender
             return false;
         }
 
-        public void ChangeState(GoalieState newState)
-        {
-            _stateMachine.ChangeState(newState);
-        }
-
         public bool Recover()
         {
             //TODO: animate this
             return false;
+        }
+
+        public void ChangeState(GoalieState state)
+        {
+            _stateMachine.ChangeState(state);
         }
 
         #endregion Public Methods

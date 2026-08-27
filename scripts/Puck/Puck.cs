@@ -1,13 +1,18 @@
 using System;
+using System.Threading.Tasks;
+
 using Godot;
 
-namespace BlueLine;
+using BlueLine.Goaltender;
+using BlueLine.Management;
+
+namespace BlueLine.FrozenRubber;
 
 public partial class Puck : RigidBody3D
 {
     #region Members
 
-    private bool _isHeld;
+    private PuckStates _puckState;
 
     #endregion Members
 
@@ -20,7 +25,47 @@ public partial class Puck : RigidBody3D
 
     #endregion Properties
 
+    #region Overrides
+
+    public override void _Ready()
+    {
+        ContactMonitor = true;
+        MaxContactsReported = 4;
+        BodyEntered += On_BodyEntered;
+
+        GameEvents.Instance.PrepareFaceoff += DropThePuck;
+
+        _puckState = PuckStates.Loose;
+    }
+
+    #endregion Overrides
+
+    #region Events
+
+    private void On_BodyEntered(Node body)
+    {
+        if (_puckState == PuckStates.Shot &&
+            body is Goalie)
+        {
+            PuckSaved();
+        }
+    }
+
+    #endregion Events
+
     #region Public Methods
+
+    /// <summary>
+    /// Mark when a shot was saved.
+    /// </summary>
+    public void PuckSaved()
+    {
+        if (_puckState != PuckStates.Shot)
+            return;
+
+        _puckState = PuckStates.Loose;
+        GameEvents.Instance.RaisePuckSaved();
+    }
 
     /// <summary>
     /// Shoot the puck in a specific direction.
@@ -29,7 +74,7 @@ public partial class Puck : RigidBody3D
     /// <param name="force">How hard to shoot the puck</param>
     public void Shoot(Vector3 direction, float force)
     {
-        if (!_isHeld)
+        if (_puckState != PuckStates.Held)
             return;
         
         Reparent(GetTree().CurrentScene);
@@ -39,10 +84,10 @@ public partial class Puck : RigidBody3D
         ).Normalized();
 
         Freeze = false;
+        _puckState = PuckStates.Shot;
 
+        GameEvents.Instance.RaiseShotFired(target, force);
         LinearVelocity = target * force;
-
-        _isHeld = false;
     }
 
     /// <summary>
@@ -51,12 +96,12 @@ public partial class Puck : RigidBody3D
     /// <param name="grabPoint"></param>
     public void Grab(Node3D grabPoint)
     {
-        if (_isHeld)
+        if (_puckState == PuckStates.Held)
             return;
-        
-        _isHeld = true;
 
         ResetPuck();
+        
+        _puckState = PuckStates.Held;
 
         Freeze = true;
         GlobalPosition = grabPoint.GlobalPosition;
@@ -64,21 +109,36 @@ public partial class Puck : RigidBody3D
         Reparent(grabPoint);
     }
 
+    
+
+    /// <summary>
+    /// Halts the puck and makes sure that it's standing still.
+    /// </summary>
+    public void ResetPuck()
+    {
+        // Reset anything from prior use
+        LinearVelocity = Vector3.Zero;
+        AngularVelocity = Vector3.Zero;
+        Rotation = Vector3.Zero;
+        _puckState = PuckStates.Loose;
+    }
+
+    #endregion Public Methods
+
+    #region Private Methods
+
     /// <summary>
     /// Drops the puck at a given faceoff dot.
     /// </summary>
     /// <param name="faceoffDot">Where to drop the puck</param>
     /// <exception cref="InvalidOperationException">You must give a node object that is a collection of faceoff dots (area3d's)</exception>
-    public void DropThePuck(FaceoffDot faceoffDot)
+    private void DropThePuck(FaceoffDot faceoffDot)
     {
         if (FaceoffLocations == null)
         {
             throw new InvalidOperationException("No faceoff location node was given. Cannot spawn puck.");
         }
 
-        // Reset anything from prior use
-        ResetPuck();
-        
         Vector3 faceoffLocation = new();
         switch(faceoffDot)
         {
@@ -118,20 +178,24 @@ public partial class Puck : RigidBody3D
             default:
                 throw new NotSupportedException($"Faceoff Location: {faceoffDot} is not setup properly. Cannot drop puck");
         }
-        
-        GlobalPosition = faceoffLocation;
-    }
 
-    /// <summary>
-    /// Halts the puck and makes sure that it's standing still.
-    /// </summary>
-    public void ResetPuck()
-    {
         // Reset anything from prior use
-        LinearVelocity = Vector3.Zero;
-        AngularVelocity = Vector3.Zero;
-        Rotation = Vector3.Zero;
+        ResetPuck();
+        Freeze = true;
+
+        GlobalPosition = faceoffLocation;
+        
+        Task.Run(() => MakeThemWait(faceoffDot));
     }
 
-    #endregion Public Methods
+    private async Task MakeThemWait(FaceoffDot faceoffDot)
+    {
+        await ToSignal(GetTree().CreateTimer(2), SceneTreeTimer.SignalName.Timeout);
+
+        Freeze = false;
+
+        GameEvents.Instance.RaisePuckDropped(faceoffDot);
+    }
+
+    #endregion Private Methods
 }

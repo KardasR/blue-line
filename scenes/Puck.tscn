@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cyeykq4vgjpcy"]
 
 [ext_resource type="PackedScene" uid="uid://cravpm7j00hh" path="res://models/Puck/hockey-puck.glb" id="1_pnaq1"]
-[ext_resource type="Script" uid="uid://c8w1fgr3v2plq" path="res://scripts/Puck.cs" id="1_w43r8"]
+[ext_resource type="Script" uid="uid://c8w1fgr3v2plq" path="res://scripts/Puck/Puck.cs" id="1_w43r8"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_1sys4"]
 height = 0.1038208

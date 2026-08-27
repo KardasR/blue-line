@@ -1,7 +1,9 @@
 using System;
 using Godot;
 
-namespace BlueLine;
+using BlueLine.FrozenRubber;
+
+namespace BlueLine.Player;
 
 public partial class Hazmat : CharacterBody3D
 {
@@ -53,12 +55,12 @@ public partial class Hazmat : CharacterBody3D
 
     #region Events
     
-    public void On_Blade_BodyEntered(Node3D body)
+    public void On_Blade_BodyEntered(Node3D puck)
     {
-        if (body is Puck puck && _heldPuck == null)
+        if (_heldPuck == null)
         {
-            puck.Grab(PuckHoldPoint);
-            _heldPuck = puck;
+            _heldPuck = (Puck)puck;
+            _heldPuck.Grab(PuckHoldPoint);
         }
     }
 
@@ -139,8 +141,8 @@ public partial class Hazmat : CharacterBody3D
             _heldPuck.Shoot(AttackingGoal.GetTargetPoint(aim), speed);
 
             _heldPuck = null;
+            _shotTimer = 0;
         }
-
 
         if (Input.IsActionPressed("pass"))
         {
@@ -169,6 +171,9 @@ public partial class Hazmat : CharacterBody3D
 
     private void MovePlayer(double delta, Vector2 input)
     {
+        bool isSprinting = Input.IsActionPressed("sprint");
+        bool isSkatingBackwards = Input.IsActionPressed("skate_backwards");
+
         // future direction of player
         Vector3 direction = Vector3.Zero; 
         if (input != Vector2.Zero) 
@@ -188,9 +193,11 @@ public partial class Hazmat : CharacterBody3D
                 (forward * -input.Y)
             ).Normalized();
 
+            Vector3 facingDirection = isSkatingBackwards ? -direction : direction;
+
             float targetAngle = Mathf.Atan2( 
-                direction.X, 
-                direction.Z 
+                facingDirection.X, 
+                facingDirection.Z 
             ); 
 
             Rotation = new Vector3(
@@ -212,7 +219,11 @@ public partial class Hazmat : CharacterBody3D
 
         if (direction != Vector3.Zero)
         {
-            Vector3 desiredVelocity = direction * Attributes.SkatingSpeed;
+            float speed = Attributes.SkatingSpeed;
+            if (isSprinting) speed = Attributes.SprintSpeed;
+            if (isSkatingBackwards) speed = Attributes.BackwardSpeed;
+
+            Vector3 desiredVelocity = direction * speed;
 
             float accel = Attributes.Acceleration;
 

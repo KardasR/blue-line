@@ -1,6 +1,8 @@
 using System;
 using Godot;
 
+using BlueLine.Management;
+
 namespace BlueLine;
 
 public partial class Net : MeshInstance3D
@@ -47,37 +49,23 @@ public partial class Net : MeshInstance3D
 
     #region Events
 
-    public EventHandler GoalScored;
-
-    public void On_Goal_BodyEntered(Node3D body)
+    public void On_Goal_BodyEntered(Node3D puck)
     {
-        GD.Print("Body detected");
-        if (body is Puck puck)
-        {
-            GD.Print("puck entering");
-
-            _puckX = puck.GlobalPosition.X;
-        }
+        _puckX = puck.GlobalPosition.X;
     }
 
-    public void On_Goal_BodyExited(Node3D body)
+    public void On_Goal_BodyExited(Node3D puck)
     {
-        GD.Print("Body leaving");
-        if (body is Puck puck)
+        if ((HomeNet &&
+                puck.GlobalPosition.X > _puckX) ||
+            (!HomeNet &&
+                puck.GlobalPosition.X < _puckX))
         {
-            GD.Print("puck exiting");
-
-            if ((HomeNet &&
-                    puck.GlobalPosition.X > _puckX) ||
-                (!HomeNet &&
-                    puck.GlobalPosition.X < _puckX))
-            {
-                // a goal has been scored.
-                GoalScored.Invoke(this, EventArgs.Empty);
-            }
-
-            _puckX = 0;
+            // a goal has been scored.
+            GameEvents.Instance.RaiseGoalScored(!HomeNet);
         }
+
+        _puckX = 0;
     }
 
     #endregion Events

@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 using Godot;
 
 using BlueLine.Goaltender;
+using BlueLine.FrozenRubber;
 
-namespace BlueLine;
+namespace BlueLine.Management;
 
 public partial class MainNode : Node
 {
@@ -55,20 +56,14 @@ public partial class MainNode : Node
 
     #region Events
 
-    public event EventHandler FaceoffStarted;
-
     /// <summary>
     /// React to a goal being scored.
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    public void On_GoalScored(object sender, EventArgs e)
+    public void On_GoalScored(bool homeGoal)
     {
-        if (sender is Net goal)
-        {
-            // home goal in the passed in context is referring to the net. Here it refers to an actual goal scored so we want to reverse the bool here.
-            GoalScored(!goal.HomeNet);
-        }
+        GoalScored(homeGoal);
     }
 
     #endregion Events
@@ -96,8 +91,7 @@ public partial class MainNode : Node
         _shotVisualizer = GetNode<ShotVisualizer>("Shot Visualizer");
 
         // subscribe to events
-        HomeNet.GoalScored += On_GoalScored;
-        AwayNet.GoalScored += On_GoalScored;
+        GameEvents.Instance.GoalScored += On_GoalScored;
 
         // create and add the puck to the scene
         // TODO: do this for the player too?
@@ -108,15 +102,15 @@ public partial class MainNode : Node
         GetNode<Goalie>("Goalie").PuckToTrack = puck;
         
         puck.FaceoffLocations = GetNode<Node>("Arena/Faceoff Dots");
-        puck.DropThePuck(FaceoffDot.CenterIce);
+        
+        GameEvents.Instance.RaisePrepareFaceoff(FaceoffDot.CenterIce);
     }
 
     public override void _Process(double delta)
     {
         if (Input.IsActionPressed("drop_puck"))
         {
-            _spawnedPuck.ResetPuck();
-            _spawnedPuck.DropThePuck(FaceoffDot.CenterIce);
+            GameEvents.Instance.RaisePrepareFaceoff(FaceoffDot.CenterIce);
         }
     }
 
@@ -153,10 +147,10 @@ public partial class MainNode : Node
 
         await ToSignal(GetTree().CreateTimer(ResetTimer), SceneTreeTimer.SignalName.Timeout);
 
-        FaceoffStarted.Invoke(this, EventArgs.Empty);
+        GameEvents.Instance.RaisePrepareFaceoff(FaceoffDot.CenterIce);
 
         _shotVisualizer.GoalScored = false;
-        _spawnedPuck.DropThePuck(FaceoffDot.CenterIce);
+        //_spawnedPuck.DropThePuck(FaceoffDot.CenterIce);
     }
 
     #endregion Private Methods
