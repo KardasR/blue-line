@@ -16,9 +16,7 @@ public class GoalieSavingState : GoalieState
 
     public override void PhysicsUpdate(double delta)
     {
-        if (Goalie.UpdateSave())
-        {
-            Goalie.ChangeState(new GoalieRecoveringState(Goalie));
-        }
+        Goalie.StaySquareToPuck(delta);
+        Goalie.TrackThePuck(delta);
     }
 }

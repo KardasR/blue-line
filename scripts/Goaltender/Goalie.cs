@@ -9,9 +9,9 @@ namespace BlueLine.Goaltender
     public partial class Goalie : CharacterBody3D
     {
         #region Members
-
+        
         private GoalieStateMachine _stateMachine;
-
+        
         private float _groundPosY;
 
         #endregion Members
@@ -73,6 +73,7 @@ namespace BlueLine.Goaltender
             GameEvents.Instance.PrepareFaceoff += OnPrepareForFaceoff;
             GameEvents.Instance.PuckDropped += OnPuckDrop;
             GameEvents.Instance.ShotFired += OnShotFired;
+            GameEvents.Instance.PuckSaved += OnShotSaved;
 
             _groundPosY = GlobalPosition.Y;
             _stateMachine = new GoalieStateMachine();
@@ -91,7 +92,7 @@ namespace BlueLine.Goaltender
         public override void _PhysicsProcess(double delta)
         {
             _stateMachine.PhysicsUpdate(delta);
-        }
+        }        
 
         #endregion Override
 
@@ -99,12 +100,17 @@ namespace BlueLine.Goaltender
 
         private void OnShotFired(Vector3 direction, float force)
         {
-            
+            ChangeState(new GoalieSavingState(this));
         }
 
         private void OnGoalScored(bool isHomeGoal)
         {
             ChangeState(new GoalieIdleState(this));
+        }
+
+        private void OnShotSaved()
+        {
+            ChangeState(new GoalieRecoveringState(this));
         }
 
         private void OnPrepareForFaceoff(FaceoffDot dot)
@@ -262,16 +268,10 @@ namespace BlueLine.Goaltender
             //TODO: animate this
         }
 
-        public bool UpdateSave()
-        {
-            //TODO: animate this
-            return false;
-        }
-
         public bool Recover()
         {
             //TODO: animate this
-            return false;
+            return true;
         }
 
         public void ChangeState(GoalieState state)
