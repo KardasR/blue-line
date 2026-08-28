@@ -5,4 +5,5 @@ public enum PuckStates
     Held,
     Shot,
     Loose,
+    Pass
 }

@@ -118,6 +118,26 @@ public partial class Hazmat : CharacterBody3D
 
     #region Private Methods
 
+    private Vector3 GetCameraRelativeDirection(Vector2 input)
+    {
+        if (input == Vector2.Zero)
+            return Vector3.Zero;
+
+        Vector3 forward = -CameraPosition.GlobalTransform.Basis.Z;
+        Vector3 right = CameraPosition.GlobalTransform.Basis.X;
+
+        forward.Y = 0;
+        right.Y = 0;
+
+        forward = forward.Normalized();
+        right = right.Normalized();
+
+        return (
+            (right * input.X) +
+            (forward * -input.Y)
+        ).Normalized();
+    }
+
     private void CheckForPuckAction(Vector2 aim, Vector2 dangle)
     {
         if (_heldPuck == null)
@@ -146,7 +166,7 @@ public partial class Hazmat : CharacterBody3D
 
         if (Input.IsActionPressed("pass"))
         {
-            _heldPuck.Shoot(Velocity, Attributes.PassSpeed);
+            _heldPuck.PassInDirection(GetCameraRelativeDirection(aim), Attributes.PassSpeed);
 
             _heldPuck = null;
         }
@@ -177,28 +197,15 @@ public partial class Hazmat : CharacterBody3D
         // future direction of player
         Vector3 direction = Vector3.Zero; 
         if (input != Vector2.Zero) 
-        { 
-            Vector3 forward = -CameraPosition.GlobalTransform.Basis.Z; 
-            Vector3 right = CameraPosition.GlobalTransform.Basis.X; 
-            
-            // Don't allow looking up/down forward.
-            forward.Y = 0; 
-            right.Y = 0; 
-
-            forward = forward.Normalized(); 
-            right = right.Normalized(); 
-
-            direction = (
-                (right * input.X) + 
-                (forward * -input.Y)
-            ).Normalized();
+        {
+            direction = GetCameraRelativeDirection(input);
 
             Vector3 facingDirection = isSkatingBackwards ? -direction : direction;
 
             float targetAngle = Mathf.Atan2( 
                 facingDirection.X, 
                 facingDirection.Z 
-            ); 
+            );
 
             Rotation = new Vector3(
                 Rotation.X,
@@ -263,6 +270,6 @@ public partial class Hazmat : CharacterBody3D
         
         MoveAndSlide(); 
     }
-
+    
     #endregion Private Methods
 }

@@ -90,6 +90,17 @@ public partial class Puck : RigidBody3D
         LinearVelocity = target * force;
     }
 
+    public void PassInDirection(Vector3 direction, float force)
+    {
+        PassInternal(direction.Normalized(), force);
+    }
+
+    public void PassToTarget(Vector3 targetPosition, float force)
+    {
+        Vector3 direction = (targetPosition - GlobalPosition).Normalized();
+        PassInternal(direction, force);
+    }
+
     /// <summary>
     /// Freeze the puck and mark it as held so it doesn't fly off the players stick.
     /// </summary>
@@ -109,8 +120,6 @@ public partial class Puck : RigidBody3D
         Reparent(grabPoint);
     }
 
-    
-
     /// <summary>
     /// Halts the puck and makes sure that it's standing still.
     /// </summary>
@@ -126,6 +135,26 @@ public partial class Puck : RigidBody3D
     #endregion Public Methods
 
     #region Private Methods
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <param name="force"></param>
+    private void PassInternal(Vector3 direction, float force)
+    {
+        if (_puckState != PuckStates.Held)
+            return;
+
+        Reparent(GetTree().CurrentScene);
+
+        Freeze = false;
+        _puckState = PuckStates.Pass;
+
+        LinearVelocity = direction * force;
+
+        //GameEvents.Instance.RaisePassMade(direction, force);
+    }
 
     /// <summary>
     /// Drops the puck at a given faceoff dot.
