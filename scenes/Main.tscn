@@ -5,24 +5,12 @@
 [ext_resource type="PackedScene" uid="uid://sk5sgyaqwtfa" path="res://scenes/Hazmat.tscn" id="2_rvslj"]
 [ext_resource type="PackedScene" uid="uid://cyeykq4vgjpcy" path="res://scenes/Puck.tscn" id="3_0bbpv"]
 [ext_resource type="PackedScene" uid="uid://c03h5rhgbttpf" path="res://scenes/ScoreBoard.tscn" id="3_jlsqs"]
-[ext_resource type="Script" uid="uid://ksf3ndq2he87" path="res://scripts/CameraRig.cs" id="6_c01mt"]
+[ext_resource type="Script" uid="uid://nwa7805bb0wp" path="res://scripts/Camera/CameraManager.cs" id="5_wp0k4"]
+[ext_resource type="PackedScene" uid="uid://cxux2362mck70" path="res://scenes/FollowCamera.tscn" id="7_lhr70"]
 [ext_resource type="Script" uid="uid://c2mc7ghwqrgy2" path="res://scripts/ShotVisualizer.cs" id="8_jlsqs"]
 [ext_resource type="Script" uid="uid://rs7plbx7tm1l" path="res://scripts/Attributes/PlayerAttributes.cs" id="8_lhr70"]
 [ext_resource type="PackedScene" uid="uid://cqemkr86gc23n" path="res://scenes/Goalie.tscn" id="8_q8u5g"]
 [ext_resource type="Script" uid="uid://x3ufnuf0rp6t" path="res://scripts/Attributes/WorldAttributes.cs" id="9_wp0k4"]
-
-[sub_resource type="Resource" id="Resource_bjd11"]
-script = ExtResource("8_lhr70")
-ShotSpeed = 50.0
-PassSpeed = 50.0
-SlapshotMultiplier = 1.5
-StickHandleRange = 1.0
-StickHandleSpeed = 30.0
-metadata/_custom_type_script = "uid://rs7plbx7tm1l"
-
-[sub_resource type="Resource" id="Resource_qmy6f"]
-script = ExtResource("9_wp0k4")
-metadata/_custom_type_script = "uid://x3ufnuf0rp6t"
 
 [sub_resource type="Resource" id="Resource_8qu1r"]
 script = ExtResource("8_lhr70")
@@ -34,11 +22,24 @@ metadata/_custom_type_script = "uid://rs7plbx7tm1l"
 script = ExtResource("9_wp0k4")
 metadata/_custom_type_script = "uid://x3ufnuf0rp6t"
 
-[node name="Main" type="Node" unique_id=351154566 node_paths=PackedStringArray("HomeNet", "AwayNet")]
+[sub_resource type="Resource" id="Resource_s03s6"]
+script = ExtResource("8_lhr70")
+Acceleration = 15.0
+Deceleration = 60.0
+metadata/_custom_type_script = "uid://rs7plbx7tm1l"
+
+[sub_resource type="Resource" id="Resource_pk87h"]
+script = ExtResource("9_wp0k4")
+metadata/_custom_type_script = "uid://x3ufnuf0rp6t"
+
+[node name="Main" type="Node" unique_id=351154566 node_paths=PackedStringArray("HomeNet", "HomeGoalie", "AwayNet", "AwayGoalie")]
 script = ExtResource("1_rarhs")
 PuckScene = ExtResource("3_0bbpv")
 HomeNet = NodePath("Arena/Joe Louis Arena/Goal A")
+HomeGoalie = NodePath("Home Goalie")
 AwayNet = NodePath("Arena/Joe Louis Arena/Goal B")
+AwayGoalie = NodePath("Away Goalie")
+PlayerScene = ExtResource("2_rvslj")
 
 [node name="Lighting" type="Node" parent="." unique_id=188668628]
 
@@ -52,28 +53,18 @@ transform = Transform3D(1, 0, 0, 0, -0.7071068, 0.7071067, 0, -0.7071067, -0.707
 
 [node name="Score Board" parent="UI" unique_id=1023751879 instance=ExtResource("3_jlsqs")]
 
-[node name="Player" parent="." unique_id=607509670 node_paths=PackedStringArray("CameraPosition", "AttackingGoal") instance=ExtResource("2_rvslj")]
-transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 11, 0, 0)
-collision_layer = 2
-collision_mask = 127
-Attributes = SubResource("Resource_bjd11")
-WorldAttributes = SubResource("Resource_qmy6f")
-CameraPosition = NodePath("../Camera Rig/Camera Pos/Camera")
-AttackingGoal = NodePath("../Arena/Joe Louis Arena/Goal B")
+[node name="SplitScreen" type="Control" parent="UI" unique_id=313882712]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="Collision Shapes" parent="Player/Stick" parent_id_path=PackedInt32Array(607509670, 1100160809) index="1" unique_id=1679342200]
-collision_layer = 64
-collision_mask = 4
-
-[node name="Camera Rig" type="Node3D" parent="." unique_id=177706517 node_paths=PackedStringArray("Target")]
-script = ExtResource("6_c01mt")
-Target = NodePath("../Player/Model")
-
-[node name="Camera Pos" type="Marker3D" parent="Camera Rig" unique_id=1247400554]
-transform = Transform3D(-3.7855173e-08, 0.50000006, -0.86602545, 2.1855694e-08, 0.86602545, 0.50000006, 1, 0, -4.371139e-08, -17, 15, 0)
-
-[node name="Camera" type="Camera3D" parent="Camera Rig/Camera Pos" unique_id=1848201322]
-transform = Transform3D(-1, -5.856222e-09, 9.756606e-08, 8.1566576e-08, 0.5000001, 0.86602557, -5.3854656e-08, 0.86602557, -0.49999988, -1.2492206e-06, 16.5, -28.578836)
+[node name="Cameras" type="Node" parent="." unique_id=1226856476 node_paths=PackedStringArray("SplitScreenControl")]
+script = ExtResource("5_wp0k4")
+FollowCameraScene = ExtResource("7_lhr70")
+SplitScreenControl = NodePath("../UI/SplitScreen")
 
 [node name="Shot Visualizer" parent="." unique_id=265332890 node_paths=PackedStringArray("Net") instance=ExtResource("3_0bbpv")]
 transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, -81.179825, 1.3931377, 1.7437139)
@@ -82,15 +73,23 @@ collision_mask = 0
 script = ExtResource("8_jlsqs")
 Net = NodePath("../Arena/Joe Louis Arena/Goal B")
 
-[node name="Goalie" parent="." unique_id=1075997564 node_paths=PackedStringArray("GoalToDefend", "LeftMostPos", "RightMostPos") instance=ExtResource("8_q8u5g")]
+[node name="Away Goalie" parent="." unique_id=1075997564 node_paths=PackedStringArray("LeftMostPos", "RightMostPos") instance=ExtResource("8_q8u5g")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -79.117744, 0.05887556, -0.0067050457)
 collision_layer = 32
 collision_mask = 23
 Attributes = SubResource("Resource_8qu1r")
 WorldAttributes = SubResource("Resource_nqlj1")
-GoalToDefend = NodePath("../Arena/Joe Louis Arena/Goal B/Goal B Target")
 LeftMostPos = NodePath("../Arena/Joe Louis Arena/Goal B/Left Goalie")
 RightMostPos = NodePath("../Arena/Joe Louis Arena/Goal B/Right Goalie")
+
+[node name="Home Goalie" parent="." unique_id=1376792103 node_paths=PackedStringArray("LeftMostPos", "RightMostPos") instance=ExtResource("8_q8u5g")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 78.17148, 0.769086, 0.121588096)
+collision_layer = 32
+collision_mask = 23
+Attributes = SubResource("Resource_s03s6")
+WorldAttributes = SubResource("Resource_pk87h")
+LeftMostPos = NodePath("../Arena/Joe Louis Arena/Goal A/Left Goalie")
+RightMostPos = NodePath("../Arena/Joe Louis Arena/Goal A/Right Goalie")
 
 [node name="Arena" parent="." unique_id=1471467799 instance=ExtResource("1_elqb8")]
 
@@ -126,10 +125,6 @@ disabled = true
 [connection signal="body_exited" from="Arena/Joe Louis Arena/Goal B/Goal B Target" to="Arena/Joe Louis Arena/Goal B" method="On_Goal_BodyExited"]
 
 [editable path="UI/Score Board"]
-[editable path="Player"]
-[editable path="Player/Model"]
-[editable path="Player/Stick"]
-[editable path="Player/Stick/Model"]
 [editable path="Shot Visualizer"]
 [editable path="Arena"]
 [editable path="Arena/Joe Louis Arena"]

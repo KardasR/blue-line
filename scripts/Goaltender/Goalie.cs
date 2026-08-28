@@ -24,16 +24,6 @@ namespace BlueLine.Goaltender
         [Export]
         public WorldAttributes WorldAttributes { get; set; }
 
-        /// <summary>
-        /// The puck that the goalie tries to save.
-        /// </summary>
-        public Puck PuckToTrack { get; set; }
-
-        /// <summary>
-        /// The goal that the goalie stands in front of.
-        /// </summary>
-        [Export]
-        public Node3D GoalToDefend { get; set; }
         #region Tracking
 
         /// <summary>
@@ -47,6 +37,16 @@ namespace BlueLine.Goaltender
         /// </summary>
         [Export]
         public Node3D RightMostPos { get; set; }
+
+        /// <summary>
+        /// The puck that the goalie tries to save.
+        /// </summary>
+        public Puck PuckToTrack { get; set; }
+
+        /// <summary>
+        /// The goal that the goalie stands in front of.
+        /// </summary>
+        public Node3D GoalToDefend { get; set; }
 
         #endregion Tracking
 
@@ -78,7 +78,7 @@ namespace BlueLine.Goaltender
             _groundPosY = GlobalPosition.Y;
             _stateMachine = new GoalieStateMachine();
 
-            _stateMachine.ChangeState(new GoalieTrackingState(this));
+            _stateMachine.ChangeState(new GoalieIdleState(this));
         }
 
         public override void _ExitTree()
@@ -151,12 +151,20 @@ namespace BlueLine.Goaltender
             Vector3 direction = (PuckToTrack.GlobalPosition - GoalToDefend.GlobalPosition).Normalized();
             Vector3 point = GoalToDefend.GlobalPosition + direction * goalieDepth;
 
-            //TODO: This needs to properly work for both goalies
-
             // constrain depth and horizontal
-            point.X = Mathf.Clamp(point.X, GoalToDefend.GlobalPosition.X, Attributes.MaxDepth);
-            point.Z = Mathf.Clamp(point.Z, LeftMostPos.GlobalPosition.Z, RightMostPos.GlobalPosition.Z);
-
+            if (point.X > 0)
+            {
+                // home goalie
+                point.X = Mathf.Clamp(point.X, GoalToDefend.GlobalPosition.X - Attributes.MaxDepth, GoalToDefend.GlobalPosition.X);
+                point.Z = Mathf.Clamp(point.Z, RightMostPos.GlobalPosition.Z, LeftMostPos.GlobalPosition.Z);
+            }
+            else
+            {
+                // away goalie
+                point.X = Mathf.Clamp(point.X, GoalToDefend.GlobalPosition.X, GoalToDefend.GlobalPosition.X + Attributes.MaxDepth);
+                point.Z = Mathf.Clamp(point.Z, LeftMostPos.GlobalPosition.Z, RightMostPos.GlobalPosition.Z);
+            }
+            
             Vector3 horizontalVelocity = new Vector3(
                 Velocity.X,
                 0,
@@ -204,7 +212,7 @@ namespace BlueLine.Goaltender
             {
                 Velocity = new Vector3(
                     Velocity.X,
-                    Velocity.Y - 75f * (float)delta,
+                    Velocity.Y - WorldAttributes.FallAcceleration * (float)delta,
                     Velocity.Z
                 );
             }

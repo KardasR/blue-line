@@ -1,0 +1,87 @@
+using Godot;
+
+using System;
+using System.Collections.Generic;
+
+namespace BlueLine.VideoFeed;
+
+public class SplitScreenCameraRig : ICameraRig
+{
+    private readonly PackedScene _followCameraScene;
+    private readonly Control _uiParent;
+    private readonly List<SubViewportContainer> _containers = new();
+    private readonly List<FollowCamera> _rigs = new();
+    private readonly List<Camera3D> _cameras = new();
+
+    public SplitScreenCameraRig(PackedScene scene, Control uiParent)
+    {
+        _followCameraScene = scene;
+        _uiParent = uiParent;
+    }
+
+    public void Setup(IReadOnlyList<Node3D> players, Node3D puck)
+    {
+        if (_followCameraScene == null)
+        {
+            throw new InvalidOperationException("No follow camera scene was given. Cannot setup follow camera");
+        }
+        if (_uiParent == null)
+        {
+            throw new InvalidOperationException("No UI parent was given. Cannot setup split screen cameras.");
+        }
+
+        for (int i = 0; i < players.Count; i++)
+        {
+            // left/right
+            SubViewportContainer container = new()
+            {
+                Stretch = true, // auto-fill
+                AnchorLeft = i == 0 ? 0f : 0.5f,
+                AnchorRight = i == 0 ? 0.5f : 1f,
+                AnchorTop = 0f,
+                AnchorBottom = 1f
+            };
+            // top/bottom
+            // SubViewportContainer container = new()
+            // {
+            //     Stretch = true, // auto-fill
+            //     AnchorLeft = 0f,
+            //     AnchorRight = 1f,
+            //     AnchorTop = i == 0 ? 0.5f : 1f,
+            //     AnchorBottom = i == 0 ? 0f : 0.5f
+            // };
+
+            SubViewport subViewport = new()
+            {
+                World3D = _uiParent.GetTree().Root.World3D
+            };
+
+            container.AddChild(subViewport);
+            _uiParent.AddChild(container);
+
+            FollowCamera rig = _followCameraScene.Instantiate<FollowCamera>();
+            rig.Target = players[i];
+            subViewport.AddChild(rig);
+
+            Camera3D camera = rig.GetNode<Camera3D>("Camera Pos/Camera");
+            camera.Current = true;
+
+            _containers.Add(container);
+            _rigs.Add(rig);
+            _cameras.Add(camera);
+        }
+    }
+
+    public Camera3D GetCameraForPlayer(int playerIndex) => _cameras[playerIndex];
+    public void Tick(double delta) { }
+
+    public void Teardown()
+    {
+        foreach (var container in _containers)
+            container.QueueFree();
+
+        _containers.Clear();
+        _rigs.Clear();
+        _cameras.Clear();
+    }
+}

@@ -1,16 +1,15 @@
 using System;
 using Godot;
 
-namespace BlueLine;
+namespace BlueLine.VideoFeed;
 
-public partial class CameraRig : Node3D
+public partial class FollowCamera : Node3D
 {
     #region Properties
     
     /// <summary>
     /// What the camera follows.
     /// </summary>
-    [Export]
     public Node3D Target { get; set; }
 
     /// <summary>

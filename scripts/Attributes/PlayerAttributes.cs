@@ -36,7 +36,7 @@ public partial class PlayerAttributes : Resource
     /// How hard the player shoots.
     /// </summary>
     [Export]
-    public float ShotSpeed { get; set; } = 40.0f;
+    public float ShotSpeed { get; set; } = 50.0f;
 
     /// <summary>
     /// How hard the player passes the puck.
@@ -48,7 +48,7 @@ public partial class PlayerAttributes : Resource
     /// What to multiply a players typical shot speed by to get a slapshot speed.
     /// </summary>
     [Export]
-    public float SlapshotMultiplier { get; set; }
+    public float SlapshotMultiplier { get; set; } = 1.5f;
 
     #endregion Shooting
 
@@ -58,13 +58,13 @@ public partial class PlayerAttributes : Resource
     /// How far away from the center point the player dangles the puck.
     /// </summary>
     [Export]
-    public float StickHandleRange { get; set; }
+    public float StickHandleRange { get; set; } = 1.0f;
 
     /// <summary>
     /// How fast the player will move the puck when stick handling.
     /// </summary>
     [Export]
-    public float StickHandleSpeed { get; set; }
+    public float StickHandleSpeed { get; set; } = 30.0f;
 
     #endregion Stick Handling
 

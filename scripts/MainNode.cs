@@ -1,10 +1,14 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 using Godot;
 
 using BlueLine.Goaltender;
 using BlueLine.FrozenRubber;
+using BlueLine.VideoFeed;
+using BlueLine.Skater;
 
 namespace BlueLine.Management;
 
@@ -24,7 +28,23 @@ public partial class MainNode : Node
 
     private ShotVisualizer _shotVisualizer;
 
+    private readonly List<Hazmat> _players = new();
+
     #endregion Members
+
+    #region Structs
+
+    public struct PlayerSpawnConfig
+    {
+        public int PlayerId;
+        //public Team Team;
+        public bool HomeTeam;
+        public int DeviceId;
+        public Vector3 SpawnPosition;
+        public PlayerAttributes Attributes;
+    }
+
+    #endregion Structs
 
     #region Properties
 
@@ -41,16 +61,39 @@ public partial class MainNode : Node
     public Net HomeNet { get; set; }
 
     /// <summary>
+    /// Home Goalie.
+    /// </summary>
+    [Export]
+    public Goalie HomeGoalie { get; set; }
+
+    /// <summary>
     /// Away Goal.
     /// </summary>
     [Export]
     public Net AwayNet { get; set; }
 
     /// <summary>
+    /// Away Goalie.
+    /// </summary>
+    [Export]
+    public Goalie AwayGoalie { get; set; }
+
+    /// <summary>
     /// How long until the game respawns the puck after a goal.
     /// </summary>
     [Export]
     public float ResetTimer { get; set; } = 3.0f;
+
+    /// <summary>
+    /// A scene used for spawning a player.
+    /// </summary>
+    [Export] 
+    public PackedScene PlayerScene;
+
+    /// <summary>
+    /// A list of players that were spawned into the scene.
+    /// </summary>
+    public IReadOnlyList<Hazmat> Players => _players;
 
     #endregion Properties
 
@@ -80,9 +123,17 @@ public partial class MainNode : Node
         {
             throw new InvalidOperationException("Home Goal was not setup. Cannot react to a goal.");
         }
+        if (HomeGoalie == null)
+        {
+            throw new InvalidOperationException("Home Goalie was not setup.");
+        }
         if (AwayNet == null)
         {
             throw new InvalidOperationException("Away Goal was not setup. Cannot react to a goal.");
+        }
+        if (AwayGoalie == null)
+        {
+            throw new InvalidOperationException("Away Goalie was not setup.");
         }
 
         // setup refs
@@ -93,13 +144,45 @@ public partial class MainNode : Node
         // subscribe to events
         GameEvents.Instance.GoalScored += On_GoalScored;
 
-        // create and add the puck to the scene
-        // TODO: do this for the player too?
+        // create and add the puck and players to the scene
         Puck puck = PuckScene.Instantiate<Puck>();
         _spawnedPuck = puck;
 
+        foreach (PlayerSpawnConfig config in BuildSpawnConfigs())
+        {
+            Hazmat player = PlayerScene.Instantiate<Hazmat>();
+            player.HomeTeam = config.HomeTeam;
+            player.DeviceId = config.DeviceId;
+            player.Attributes = config.Attributes;
+            player.PlayerId = config.PlayerId;
+
+            player.AttackingGoal = config.HomeTeam ? AwayNet : HomeNet;
+
+            AddChild(player);
+
+            player.GlobalPosition = config.SpawnPosition; // set after AddChild so it's not overwritten by scene defaults
+            player.GlobalRotation = new() { 
+                X = player.GlobalRotation.X, 
+                Y = config.HomeTeam ? -Mathf.Pi/2 : Mathf.Pi/2, 
+                Z = player.GlobalRotation.Z 
+            };
+
+            _players.Add(player);
+        }
+
+        CameraManager.Instance.SetMode(
+            CameraMode.FollowFixed,
+            _players.Cast<Node3D>().ToList(),
+            puck
+        );
+
         AddChild(puck);
-        GetNode<Goalie>("Goalie").PuckToTrack = puck;
+
+        HomeGoalie.PuckToTrack = puck;
+        HomeGoalie.GoalToDefend = HomeNet;
+
+        AwayGoalie.PuckToTrack = puck;
+        AwayGoalie.GoalToDefend = AwayNet;
         
         puck.FaceoffLocations = GetNode<Node>("Arena/Faceoff Dots");
         
@@ -150,7 +233,33 @@ public partial class MainNode : Node
         GameEvents.Instance.RaisePrepareFaceoff(FaceoffDot.CenterIce);
 
         _shotVisualizer.GoalScored = false;
-        //_spawnedPuck.DropThePuck(FaceoffDot.CenterIce);
+    }
+
+    private List<PlayerSpawnConfig> BuildSpawnConfigs()
+    {
+        List<PlayerSpawnConfig> list = new();
+
+        PlayerSpawnConfig player1 = new();
+
+        player1.HomeTeam = true;
+        player1.DeviceId = 0;
+        player1.PlayerId = 0;
+        player1.SpawnPosition = FaceoffLineup.LineupSkater(Positions.Center, GetNode<Node3D>("Arena/Faceoff Dots/Center Ice"), true);
+        player1.Attributes = new();
+
+        list.Add(player1);
+
+        PlayerSpawnConfig player2 = new();
+
+        player2.HomeTeam = false;
+        player2.DeviceId = 0;
+        player2.PlayerId = 0;
+        player2.SpawnPosition = FaceoffLineup.LineupSkater(Positions.Center, GetNode<Node3D>("Arena/Faceoff Dots/Center Ice"), false);
+        player2.Attributes = new();
+
+        list.Add(player2);
+
+        return list;
     }
 
     #endregion Private Methods

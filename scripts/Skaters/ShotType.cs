@@ -1,3 +1,5 @@
+namespace BlueLine.Skater;
+
 public enum ShotType
 {
     Pass,

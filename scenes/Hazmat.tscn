@@ -2,7 +2,17 @@
 
 [ext_resource type="Script" uid="uid://ip2l4yfdyi0p" path="res://scripts/Skaters/Hazmat.cs" id="1_8j6c8"]
 [ext_resource type="PackedScene" uid="uid://nc5u33h7dqkj" path="res://models/Hazmat/HazmatSuitPose.fbx" id="1_uy6rq"]
+[ext_resource type="Script" uid="uid://rs7plbx7tm1l" path="res://scripts/Attributes/PlayerAttributes.cs" id="2_b7y57"]
 [ext_resource type="PackedScene" uid="uid://s2bh3ifjrhqs" path="res://scenes/Stick.tscn" id="2_xp1fp"]
+[ext_resource type="Script" uid="uid://x3ufnuf0rp6t" path="res://scripts/Attributes/WorldAttributes.cs" id="3_03ck6"]
+
+[sub_resource type="Resource" id="Resource_q8u5g"]
+script = ExtResource("2_b7y57")
+metadata/_custom_type_script = "uid://rs7plbx7tm1l"
+
+[sub_resource type="Resource" id="Resource_lhr70"]
+script = ExtResource("3_03ck6")
+metadata/_custom_type_script = "uid://x3ufnuf0rp6t"
 
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_uy6rq"]
 points = PackedVector3Array(0.0005301585, 0.0051920633, -0.003993652, 0.0040472746, 0.0051920633, 0.01535238, 0.0040472746, 0.0043128706, 0.01535238, 0.0040472746, 0.0051920633, -0.003993652, 0.0005301585, 0.006071256, 0.01447181, 0.0005301585, 0.0043128706, 0.01535238, 0.0040472746, 0.0043128706, -0.003993652, 0.0031676514, 0.006071256, -0.003993652, 0.0005301585, 0.0043128706, -0.002234405, 0.0005301585, 0.006071256, -0.003993652, 0.0022887166, 0.006071256, 0.012712563, 0.0005301585, 0.0051920633, 0.01535238, 0.0022887166, 0.0043128706, -0.003993652, 0.0014097819, 0.006071256, 0.01447181, 0.0031676514, 0.006071256, -0.002234405)
@@ -198,12 +208,18 @@ points = PackedVector3Array(-0.004165003, -0.00882824, -0.034130156, -0.00390466
 
 [node name="Hazmat" type="CharacterBody3D" unique_id=1055767393 node_paths=PackedStringArray("PuckHoldPoint")]
 script = ExtResource("1_8j6c8")
+Attributes = SubResource("Resource_q8u5g")
+WorldAttributes = SubResource("Resource_lhr70")
 PuckHoldPoint = NodePath("Puck Hold Point")
 
 [node name="Model" parent="." unique_id=846747389 instance=ExtResource("1_uy6rq")]
 
 [node name="Stick" parent="." unique_id=1100160809 instance=ExtResource("2_xp1fp")]
 transform = Transform3D(0.8020321, 0.5972809, 0, -0.5927218, 0.7959101, 0.12332016, 0.07365678, -0.09890673, 0.9923669, -2.7529616, -0.06931603, 1.3125279)
+
+[node name="Collision Shapes" parent="Stick" index="1" unique_id=1679342200]
+collision_layer = 64
+collision_mask = 4
 
 [node name="Puck Hold Point" type="Node3D" parent="." unique_id=810094759]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.615, 0.225, 1.68)

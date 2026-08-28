@@ -2,8 +2,9 @@ using System;
 using Godot;
 
 using BlueLine.FrozenRubber;
+using BlueLine.VideoFeed;
 
-namespace BlueLine.Player;
+namespace BlueLine.Skater;
 
 public partial class Hazmat : CharacterBody3D
 {
@@ -15,6 +16,8 @@ public partial class Hazmat : CharacterBody3D
 
     private uint _shotTimer;
 
+    private Camera3D _cameraPosition => CameraManager.Instance.GetCameraForPlayer(PlayerId);
+
     #endregion Members
 
     #region Properties
@@ -25,15 +28,11 @@ public partial class Hazmat : CharacterBody3D
     [Export]
     public WorldAttributes WorldAttributes { get; set; }
 
-    #region Camera Settings
+    public bool HomeTeam { get; set; }
 
-    /// <summary> 
-    /// Position of where the camera is in the game.
-    /// </summary> 
-    [Export]
-    Camera3D CameraPosition { get; set; }
+    public int DeviceId { get; set; }
 
-    #endregion Camera Settings
+    public int PlayerId { get; set; }
 
     #region Puck Settings
 
@@ -123,8 +122,8 @@ public partial class Hazmat : CharacterBody3D
         if (input == Vector2.Zero)
             return Vector3.Zero;
 
-        Vector3 forward = -CameraPosition.GlobalTransform.Basis.Z;
-        Vector3 right = CameraPosition.GlobalTransform.Basis.X;
+        Vector3 forward = -_cameraPosition.GlobalTransform.Basis.Z;
+        Vector3 right = _cameraPosition.GlobalTransform.Basis.X;
 
         forward.Y = 0;
         right.Y = 0;
