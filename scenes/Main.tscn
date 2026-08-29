@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://cyeykq4vgjpcy" path="res://scenes/Puck.tscn" id="3_0bbpv"]
 [ext_resource type="PackedScene" uid="uid://c03h5rhgbttpf" path="res://scenes/ScoreBoard.tscn" id="3_jlsqs"]
 [ext_resource type="Script" uid="uid://nwa7805bb0wp" path="res://scripts/Camera/CameraManager.cs" id="5_wp0k4"]
+[ext_resource type="PackedScene" uid="uid://dc3n0sdfq6mbw" path="res://scenes/Input.tscn" id="7_bjd11"]
 [ext_resource type="PackedScene" uid="uid://cxux2362mck70" path="res://scenes/FollowCamera.tscn" id="7_lhr70"]
 [ext_resource type="Script" uid="uid://c2mc7ghwqrgy2" path="res://scripts/ShotVisualizer.cs" id="8_jlsqs"]
 [ext_resource type="Script" uid="uid://rs7plbx7tm1l" path="res://scripts/Attributes/PlayerAttributes.cs" id="8_lhr70"]
@@ -40,6 +41,7 @@ HomeGoalie = NodePath("Home Goalie")
 AwayNet = NodePath("Arena/Joe Louis Arena/Goal B")
 AwayGoalie = NodePath("Away Goalie")
 PlayerScene = ExtResource("2_rvslj")
+InputScene = ExtResource("7_bjd11")
 
 [node name="Lighting" type="Node" parent="." unique_id=188668628]
 
@@ -66,12 +68,19 @@ script = ExtResource("5_wp0k4")
 FollowCameraScene = ExtResource("7_lhr70")
 SplitScreenControl = NodePath("../UI/SplitScreen")
 
-[node name="Shot Visualizer" parent="." unique_id=265332890 node_paths=PackedStringArray("Net") instance=ExtResource("3_0bbpv")]
+[node name="Home Shot Visualizer" parent="." unique_id=265332890 node_paths=PackedStringArray("Net") instance=ExtResource("3_0bbpv")]
 transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, -81.179825, 1.3931377, 1.7437139)
 collision_layer = 0
 collision_mask = 0
 script = ExtResource("8_jlsqs")
 Net = NodePath("../Arena/Joe Louis Arena/Goal B")
+
+[node name="Away Shot Visualizer" parent="." unique_id=1517809946 node_paths=PackedStringArray("Net") instance=ExtResource("3_0bbpv")]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 81.3, 1.554, 1.614)
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("8_jlsqs")
+Net = NodePath("../Arena/Joe Louis Arena/Goal A")
 
 [node name="Away Goalie" parent="." unique_id=1075997564 node_paths=PackedStringArray("LeftMostPos", "RightMostPos") instance=ExtResource("8_q8u5g")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -79.117744, 0.05887556, -0.0067050457)
@@ -95,6 +104,7 @@ RightMostPos = NodePath("../Arena/Joe Louis Arena/Goal A/Right Goalie")
 
 [node name="Goal A" parent="Arena/Joe Louis Arena" parent_id_path=PackedInt32Array(1471467799, 2048491058) index="9" unique_id=56669343 node_paths=PackedStringArray("AimTarget")]
 AimTarget = NodePath("Goal A Target")
+HomeNet = true
 
 [node name="Posts" parent="Arena/Joe Louis Arena/Goal A" index="0" unique_id=921068731]
 collision_layer = 16
@@ -125,6 +135,7 @@ disabled = true
 [connection signal="body_exited" from="Arena/Joe Louis Arena/Goal B/Goal B Target" to="Arena/Joe Louis Arena/Goal B" method="On_Goal_BodyExited"]
 
 [editable path="UI/Score Board"]
-[editable path="Shot Visualizer"]
+[editable path="Home Shot Visualizer"]
+[editable path="Away Shot Visualizer"]
 [editable path="Arena"]
 [editable path="Arena/Joe Louis Arena"]

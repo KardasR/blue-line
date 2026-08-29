@@ -32,24 +32,29 @@ public partial class PlayerInput : Node
                 _movement.Y = motion.AxisValue;
 
             else if (motion.Axis == JoyAxis.RightX)
-                _stickHandle.X = motion.AxisValue;
+                _stickHandle.X = -motion.AxisValue;
 
             else if (motion.Axis == JoyAxis.RightY)
-                _stickHandle.Y = motion.AxisValue;
+                _stickHandle.Y = -motion.AxisValue;
         }
         if (@event is InputEventJoypadButton button)
         {
-            if (button.IsActionPressed("shoot")) IsShooting = true;
-            else if (button.IsActionReleased("shoot")) IsShooting = false;
+            // if (button.IsActionPressed("shoot")) IsShooting = true;
+            // else if (button.IsActionReleased("shoot")) IsShooting = false;
 
-            if (button.IsActionPressed("pass")) IsPassing = true;
-            else if (button.IsActionReleased("pass")) IsPassing = false;
+            // if (button.IsActionPressed("pass")) IsPassing = true;
+            // else if (button.IsActionReleased("pass")) IsPassing = false;
 
-            if (button.IsActionPressed("sprint")) IsSprinting = true;
-            else if (button.IsActionReleased("sprint")) IsSprinting = false;
+            // if (button.IsActionPressed("sprint")) IsSprinting = true;
+            // else if (button.IsActionReleased("sprint")) IsSprinting = false;
 
-            if (button.IsActionPressed("skate_backwards")) IsSkatingBackwards = true;
-            else if (button.IsActionReleased("skate_backwards")) IsSkatingBackwards = false;
+            // if (button.IsActionPressed("skate_backwards")) IsSkatingBackwards = true;
+            // else if (button.IsActionReleased("skate_backwards")) IsSkatingBackwards = false;
+
+            IsShooting = button.IsActionPressed("shoot");
+            IsPassing = button.IsActionPressed("pass");
+            IsSprinting = button.IsActionPressed("sprint");
+            IsSkatingBackwards = button.IsActionPressed("skate_backwards");
         }
     }
 

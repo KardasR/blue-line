@@ -26,7 +26,9 @@ public partial class MainNode : Node
 
     private Label _awayScoreLbl;
 
-    private ShotVisualizer _shotVisualizer;
+    private ShotVisualizer _homeShotVisualizer;
+
+    private ShotVisualizer _awayShotVisualizer;
 
     private readonly List<Hazmat> _players = new();
 
@@ -37,8 +39,8 @@ public partial class MainNode : Node
     public struct PlayerSpawnConfig
     {
         public int PlayerId;
-        public bool HomeTeam;
         public int DeviceId;
+        public bool HomeTeam;
         public Vector3 SpawnPosition;
     }
 
@@ -89,6 +91,12 @@ public partial class MainNode : Node
     public PackedScene PlayerScene;
 
     /// <summary>
+    /// 
+    /// </summary>
+    [Export]
+    public PackedScene InputScene;
+
+    /// <summary>
     /// A list of players that were spawned into the scene.
     /// </summary>
     public IReadOnlyList<Hazmat> Players => _players;
@@ -137,7 +145,20 @@ public partial class MainNode : Node
         // setup refs
         _homeScoreLbl = GetNode<Label>("UI/Score Board/Home Score");
         _awayScoreLbl = GetNode<Label>("UI/Score Board/Away Score");
-        _shotVisualizer = GetNode<ShotVisualizer>("Shot Visualizer");
+        _homeShotVisualizer = GetNode<ShotVisualizer>("Home Shot Visualizer");
+        _awayShotVisualizer = GetNode<ShotVisualizer>("Away Shot Visualizer");
+
+        int numOfContr = Input.GetConnectedJoypads().Count;
+        // make a player input for each device connected.
+        for (int i = 0; i < numOfContr; i++)
+        {
+            //TODO: make a state machine to handle disconnects and new controllers.
+            PlayerInput playerInput = InputScene.Instantiate<PlayerInput>();
+            playerInput.Name = $"ControllerInput{i}";
+            playerInput.DeviceId = i;
+
+            AddChild(playerInput);
+        }
 
         // subscribe to events
         GameEvents.Instance.GoalScored += On_GoalScored;
@@ -150,10 +171,21 @@ public partial class MainNode : Node
         {
             Hazmat player = PlayerScene.Instantiate<Hazmat>();
             player.HomeTeam = config.HomeTeam;
-            player.DeviceId = config.DeviceId;
             player.PlayerId = config.PlayerId;
-
+            player.InputDevice = GetNode<PlayerInput>($"ControllerInput{config.DeviceId}");
             player.AttackingGoal = config.HomeTeam ? AwayNet : HomeNet;
+
+            //TODO: with many controllers, this can dynamically change to whoever holds the puck
+            if (numOfContr > 0 && config.HomeTeam)
+            {
+                _homeShotVisualizer.ControllerInput = GetNode<PlayerInput>($"ControllerInput{config.DeviceId}");
+                numOfContr -= 1;
+            }
+            else if (numOfContr > 0 && !config.HomeTeam)
+            {
+                _awayShotVisualizer.ControllerInput = GetNode<PlayerInput>($"ControllerInput{config.DeviceId}");
+                numOfContr -= 1;
+            }
 
             AddChild(player);
 
@@ -169,7 +201,7 @@ public partial class MainNode : Node
 
         CameraManager.Instance.SetMode(
             CameraMode.SplitScreen,
-            _players.Cast<Node3D>().ToList(),
+            _players,
             puck
         );
 
@@ -222,14 +254,9 @@ public partial class MainNode : Node
 
     private async Task AfterGoalTheatrics()
     {
-        // TODO: freeze the shot aimer in place, spawn puck after a certain amount of time.
-        _shotVisualizer.GoalScored = true;
-
         await ToSignal(GetTree().CreateTimer(ResetTimer), SceneTreeTimer.SignalName.Timeout);
 
         GameEvents.Instance.RaisePrepareFaceoff(FaceoffDot.CenterIce);
-
-        _shotVisualizer.GoalScored = false;
     }
 
     private List<PlayerSpawnConfig> BuildSpawnConfigs()
@@ -239,16 +266,16 @@ public partial class MainNode : Node
         PlayerSpawnConfig player1 = new()
         {
             HomeTeam = true,
-            DeviceId = 0,
             PlayerId = 0,
+            DeviceId = 0,
             SpawnPosition = FaceoffLineup.LineupSkater(Positions.Center, GetNode<Node3D>("Arena/Faceoff Dots/Center Ice"), true),
         };
 
         PlayerSpawnConfig player2 = new()
         {
             HomeTeam = false,
-            DeviceId = 1,
             PlayerId = 1,
+            DeviceId = 1,
             SpawnPosition = FaceoffLineup.LineupSkater(Positions.Center, GetNode<Node3D>("Arena/Faceoff Dots/Center Ice"), false),
         };
 

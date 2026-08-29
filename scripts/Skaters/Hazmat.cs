@@ -16,17 +16,7 @@ public partial class Hazmat : CharacterBody3D
 
     private uint _shotTimer;
 
-    private Vector2 _moveInput = Vector2.Zero;
-
-    private bool _isSprinting;
-
-    private bool _isSkatingBackwards;
-
-    private bool _passJustPressed;
-
     private Camera3D _cameraPosition => CameraManager.Instance.GetCameraForPlayer(PlayerId);
-
-    private PlayerInput _input;
 
     #endregion Members
 
@@ -40,9 +30,9 @@ public partial class Hazmat : CharacterBody3D
 
     public bool HomeTeam { get; set; }
 
-    public int DeviceId { get; set; }
-
     public int PlayerId { get; set; }
+
+    public PlayerInput InputDevice { private get; set; }
 
     #region Puck Settings
 
@@ -95,9 +85,6 @@ public partial class Hazmat : CharacterBody3D
         {
             throw new InvalidOperationException("No attacking goal was given. Cannot shoot on goal.");
         }
-
-        _input = GetNode<PlayerInput>("PlayerInput");
-        _input.DeviceId = DeviceId;
     }
     /// <summary>
     /// Checks if an input action has been pressed and responds accordingly
@@ -105,9 +92,9 @@ public partial class Hazmat : CharacterBody3D
     /// <param name="delta"></param>
     public override void _PhysicsProcess(double delta) 
     { 
-        MovePlayer(delta, _input.Movement);
-        StickHandle(delta, _input.StickHandle);
-        CheckForPuckAction(_input.Movement, _input.StickHandle);
+        MovePlayer(delta, InputDevice.Movement);
+        StickHandle(delta, InputDevice.StickHandle);
+        CheckForPuckAction(InputDevice.Movement, InputDevice.StickHandle);
     } 
 
     #endregion Overrides
@@ -129,8 +116,8 @@ public partial class Hazmat : CharacterBody3D
         right = right.Normalized();
 
         return (
-            (right * _input.Movement.X) +
-            (forward * -_input.Movement.Y)
+            (right * InputDevice.Movement.X) +
+            (forward * -InputDevice.Movement.Y)
         ).Normalized();
     }
 
@@ -139,17 +126,17 @@ public partial class Hazmat : CharacterBody3D
         if (_heldPuck == null)
             return;
 
-        if (_input.IsShooting && !_takingShot)
+        if (InputDevice.IsShooting && !_takingShot)
         {
             _takingShot = true;
             _shotTimer = 0;
         }
-        if (_input.IsShooting ||
+        if (InputDevice.IsShooting ||
             dangle.Y < -WorldAttributes.ShotDeadzone)
         {
             _shotTimer += 1;
         }
-        if ((!_input.IsShooting && _takingShot) ||
+        if ((!InputDevice.IsShooting && _takingShot) ||
             dangle.Y > WorldAttributes.ShotDeadzone)
         {
             float speed = _shotTimer >= WorldAttributes.SlapshotThreshold ? Attributes.ShotSpeed * Attributes.SlapshotMultiplier : Attributes.ShotSpeed;
@@ -161,7 +148,7 @@ public partial class Hazmat : CharacterBody3D
             _shotTimer = 0;
         }
 
-        if (_input.IsPassing)
+        if (InputDevice.IsPassing)
         {
             _heldPuck.PassInDirection(GetCameraRelativeDirection(aim), Attributes.PassSpeed);
 
@@ -194,7 +181,7 @@ public partial class Hazmat : CharacterBody3D
         {
             direction = GetCameraRelativeDirection(input);
 
-            Vector3 facingDirection = _input.IsSkatingBackwards ? -direction : direction;
+            Vector3 facingDirection = InputDevice.IsSkatingBackwards ? -direction : direction;
 
             float targetAngle = Mathf.Atan2( 
                 facingDirection.X, 
@@ -221,8 +208,8 @@ public partial class Hazmat : CharacterBody3D
         if (direction != Vector3.Zero)
         {
             float speed = Attributes.SkatingSpeed;
-            if (_input.IsSprinting) speed = Attributes.SprintSpeed;
-            if (_input.IsSkatingBackwards) speed = Attributes.BackwardSpeed;
+            if (InputDevice.IsSprinting) speed = Attributes.SprintSpeed;
+            if (InputDevice.IsSkatingBackwards) speed = Attributes.BackwardSpeed;
 
             Vector3 desiredVelocity = direction * speed;
 

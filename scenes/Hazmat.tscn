@@ -5,7 +5,6 @@
 [ext_resource type="Script" uid="uid://rs7plbx7tm1l" path="res://scripts/Attributes/PlayerAttributes.cs" id="2_b7y57"]
 [ext_resource type="PackedScene" uid="uid://s2bh3ifjrhqs" path="res://scenes/Stick.tscn" id="2_xp1fp"]
 [ext_resource type="Script" uid="uid://x3ufnuf0rp6t" path="res://scripts/Attributes/WorldAttributes.cs" id="3_03ck6"]
-[ext_resource type="Script" uid="uid://oqsijyxvsqu" path="res://scripts/Skaters/PlayerInput.cs" id="6_03ck6"]
 
 [sub_resource type="Resource" id="Resource_q8u5g"]
 script = ExtResource("2_b7y57")
@@ -221,10 +220,6 @@ transform = Transform3D(0.8020321, 0.5972809, 0, -0.5927218, 0.7959101, 0.123320
 [node name="Collision Shapes" parent="Stick" index="1" unique_id=1679342200]
 collision_layer = 64
 collision_mask = 4
-
-[node name="PlayerInput" type="Node" parent="." unique_id=277177588]
-script = ExtResource("6_03ck6")
-Deadzone = 0.2
 
 [node name="Puck Hold Point" type="Node3D" parent="." unique_id=810094759]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.615, 0.225, 1.68)

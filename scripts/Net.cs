@@ -117,7 +117,7 @@ public partial class Net : MeshInstance3D
         }
 
         Vector3 localPoint = new Vector3(
-            -aim.X * (Width / 2.0f),
+            HomeNet ? aim.X * (Width / 2.0f) : -aim.X * (Width / 2.0f),
             0,
             -aim.Y * (Height / 2.0f)
         );

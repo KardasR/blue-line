@@ -1,3 +1,4 @@
+using BlueLine.Skater;
 using Godot;
 
 using System;
@@ -7,11 +8,11 @@ namespace BlueLine.VideoFeed;
 
 public class SplitScreenCameraRig : ICameraRig
 {
-    private readonly PackedScene _followCameraScene;
-    private readonly Control _uiParent;
-    private readonly List<SubViewportContainer> _containers = new();
-    private readonly List<FollowCamera> _rigs = new();
-    private readonly List<Camera3D> _cameras = new();
+    private PackedScene _followCameraScene;
+    private Control _uiParent;
+    private List<SubViewportContainer> _containers = new();
+    private List<FollowCamera> _rigs = new();
+    private List<Camera3D> _cameras = new();
 
     public SplitScreenCameraRig(PackedScene scene, Control uiParent)
     {
@@ -19,7 +20,7 @@ public class SplitScreenCameraRig : ICameraRig
         _uiParent = uiParent;
     }
 
-    public void Setup(IReadOnlyList<Node3D> players, Node3D puck)
+    public void Setup(IReadOnlyList<Hazmat> players, Node3D puck)
     {
         if (_followCameraScene == null)
         {
@@ -62,6 +63,9 @@ public class SplitScreenCameraRig : ICameraRig
             FollowCamera rig = _followCameraScene.Instantiate<FollowCamera>();
             rig.Target = players[i];
             subViewport.AddChild(rig);
+
+            if (!players[i].HomeTeam)
+                rig.RotateY(Mathf.Pi);
 
             Camera3D camera = rig.GetNode<Camera3D>("Camera Pos/Camera");
             camera.Current = true;

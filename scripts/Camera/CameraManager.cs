@@ -1,3 +1,4 @@
+using BlueLine.Skater;
 using Godot;
 
 using System;
@@ -23,7 +24,7 @@ public partial class CameraManager : Node
 
     public override void _EnterTree() => Instance = this;
 
-    public void SetMode(CameraMode mode, IReadOnlyList<Node3D> players, Node3D puck)
+    public void SetMode(CameraMode mode, IReadOnlyList<Hazmat> players, Node3D puck)
     {
         if (FollowCameraScene == null)
         {

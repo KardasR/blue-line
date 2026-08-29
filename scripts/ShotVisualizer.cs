@@ -6,7 +6,9 @@ namespace BlueLine;
 
 public partial class ShotVisualizer : RigidBody3D
 {
-    private bool _OkayToMove;
+    private bool _okayToMove;
+
+    private PlayerInput _input;
 
     /// <summary>
     /// What goal the target hovers over.
@@ -19,31 +21,40 @@ public partial class ShotVisualizer : RigidBody3D
     /// </summary>
     public bool GoalScored { private get; set; }
 
+    public PlayerInput ControllerInput { 
+        private get => _input; 
+        set 
+        {
+            // make sure we only set this once
+            if (_input == null)
+            {
+                _input = value;
+                _okayToMove = true;
+            }
+        } 
+    }
+
     public override void _Ready()
     {
         GameEvents.Instance.ShotFired += ReactToShot;
         GameEvents.Instance.PuckSaved += ReactToSave;
         GameEvents.Instance.GoalScored += ReactToGoal;
-
-        _OkayToMove = true;
+        GameEvents.Instance.PrepareFaceoff += ReactToFaceoffPrep;
     }
 
-    public override void _ExitTree()
+    private void ReactToFaceoffPrep(FaceoffDot faceoffDot)
     {
-        GameEvents.Instance.ShotFired -= ReactToShot;
-        GameEvents.Instance.PuckSaved -= ReactToSave;
-        GameEvents.Instance.GoalScored -= ReactToGoal;
+        ResetVisualizer();
     }
-
 
     private void ReactToShot(Vector3 direction, float force)
     {
-        _OkayToMove = false;
+        _okayToMove = false;
     }
 
     private void ReactToGoal(bool isHomeGoal)
     {
-        ResetVisualizer();
+        _okayToMove = false;
     }
 
     private void ReactToSave()
@@ -53,21 +64,13 @@ public partial class ShotVisualizer : RigidBody3D
 
     private void ResetVisualizer()
     {
-        _OkayToMove = true;
+        _okayToMove = true;
     }
 
     public override void _Process(double delta)
     {
-        // create a vector2 out of the inputs 
-        Vector2 input = Input.GetVector( 
-            "move_left", 
-            "move_right", 
-            "move_forward", 
-            "move_backward" 
-        );
-
-        if (_OkayToMove)
-            GlobalPosition = Net.GetTargetPoint(input);
+        if (_okayToMove)
+            GlobalPosition = Net.GetTargetPoint(ControllerInput.Movement);
         else
             GlobalPosition = GlobalPosition;
     }

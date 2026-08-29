@@ -1,7 +1,9 @@
+using BlueLine.Skater;
 using Godot;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BlueLine.VideoFeed;
 
@@ -19,7 +21,7 @@ public class FollowFixedCameraRig : ICameraRig
         _parent = parent;
     }
 
-    public void Setup(IReadOnlyList<Node3D> players, Node3D puck)
+    public void Setup(IReadOnlyList<Hazmat> players, Node3D puck)
     {
         if (_followCameraScene == null)
         {
