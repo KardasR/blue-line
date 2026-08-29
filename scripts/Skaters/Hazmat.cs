@@ -32,7 +32,7 @@ public partial class Hazmat : CharacterBody3D
 
     public int PlayerId { get; set; }
 
-    public PlayerInput InputDevice { private get; set; }
+    public ControllerInput InputDevice { private get; set; }
 
     #region Puck Settings
 

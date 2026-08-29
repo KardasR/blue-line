@@ -153,7 +153,7 @@ public partial class MainNode : Node
         for (int i = 0; i < numOfContr; i++)
         {
             //TODO: make a state machine to handle disconnects and new controllers.
-            PlayerInput playerInput = InputScene.Instantiate<PlayerInput>();
+            ControllerInput playerInput = InputScene.Instantiate<ControllerInput>();
             playerInput.Name = $"ControllerInput{i}";
             playerInput.DeviceId = i;
 
@@ -172,18 +172,17 @@ public partial class MainNode : Node
             Hazmat player = PlayerScene.Instantiate<Hazmat>();
             player.HomeTeam = config.HomeTeam;
             player.PlayerId = config.PlayerId;
-            player.InputDevice = GetNode<PlayerInput>($"ControllerInput{config.DeviceId}");
+            player.InputDevice = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
             player.AttackingGoal = config.HomeTeam ? AwayNet : HomeNet;
 
-            //TODO: with many controllers, this can dynamically change to whoever holds the puck
             if (numOfContr > 0 && config.HomeTeam)
             {
-                _homeShotVisualizer.ControllerInput = GetNode<PlayerInput>($"ControllerInput{config.DeviceId}");
+                _homeShotVisualizer.Controller = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
                 numOfContr -= 1;
             }
             else if (numOfContr > 0 && !config.HomeTeam)
             {
-                _awayShotVisualizer.ControllerInput = GetNode<PlayerInput>($"ControllerInput{config.DeviceId}");
+                _awayShotVisualizer.Controller = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
                 numOfContr -= 1;
             }
 

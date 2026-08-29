@@ -8,7 +8,7 @@ public partial class ShotVisualizer : RigidBody3D
 {
     private bool _okayToMove;
 
-    private PlayerInput _input;
+    private ControllerInput _input;
 
     /// <summary>
     /// What goal the target hovers over.
@@ -21,7 +21,7 @@ public partial class ShotVisualizer : RigidBody3D
     /// </summary>
     public bool GoalScored { private get; set; }
 
-    public PlayerInput ControllerInput { 
+    public ControllerInput Controller { 
         private get => _input; 
         set 
         {
@@ -70,7 +70,7 @@ public partial class ShotVisualizer : RigidBody3D
     public override void _Process(double delta)
     {
         if (_okayToMove)
-            GlobalPosition = Net.GetTargetPoint(ControllerInput.Movement);
+            GlobalPosition = Net.GetTargetPoint(Controller.Movement);
         else
             GlobalPosition = GlobalPosition;
     }

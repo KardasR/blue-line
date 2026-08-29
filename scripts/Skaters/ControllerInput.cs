@@ -1,6 +1,6 @@
 using Godot;
 
-public partial class PlayerInput : Node
+public partial class ControllerInput : Node
 {
     private bool _chargingShot;
     private Vector2 _movement;

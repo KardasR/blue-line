@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dc3n0sdfq6mbw"]
 
-[ext_resource type="Script" uid="uid://oqsijyxvsqu" path="res://scripts/Skaters/PlayerInput.cs" id="1_xone2"]
+[ext_resource type="Script" uid="uid://cn3lmd6f8kp2t" path="res://scripts/Skaters/ControllerInput.cs" id="1_xone2"]
 
 [node name="Node" type="Node" unique_id=1814706092]
 script = ExtResource("1_xone2")
