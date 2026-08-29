@@ -16,7 +16,17 @@ public partial class Hazmat : CharacterBody3D
 
     private uint _shotTimer;
 
+    private Vector2 _moveInput = Vector2.Zero;
+
+    private bool _isSprinting;
+
+    private bool _isSkatingBackwards;
+
+    private bool _passJustPressed;
+
     private Camera3D _cameraPosition => CameraManager.Instance.GetCameraForPlayer(PlayerId);
+
+    private PlayerInput _input;
 
     #endregion Members
 
@@ -85,32 +95,19 @@ public partial class Hazmat : CharacterBody3D
         {
             throw new InvalidOperationException("No attacking goal was given. Cannot shoot on goal.");
         }
+
+        _input = GetNode<PlayerInput>("PlayerInput");
+        _input.DeviceId = DeviceId;
     }
-
-
     /// <summary>
     /// Checks if an input action has been pressed and responds accordingly
     /// </summary>
     /// <param name="delta"></param>
     public override void _PhysicsProcess(double delta) 
     { 
-        // create a vector2 out of the inputs 
-        Vector2 leftStick = Input.GetVector( 
-            "move_left", 
-            "move_right", 
-            "move_forward", 
-            "move_backward" 
-        ); 
-        Vector2 rightStick = Input.GetVector(
-            "deke_right",
-            "deke_left",
-            "deke_down",
-            "deke_up"
-        );
-        
-        MovePlayer(delta, leftStick);
-        StickHandle(delta, rightStick);
-        CheckForPuckAction(leftStick, rightStick);
+        MovePlayer(delta, _input.Movement);
+        StickHandle(delta, _input.StickHandle);
+        CheckForPuckAction(_input.Movement, _input.StickHandle);
     } 
 
     #endregion Overrides
@@ -132,8 +129,8 @@ public partial class Hazmat : CharacterBody3D
         right = right.Normalized();
 
         return (
-            (right * input.X) +
-            (forward * -input.Y)
+            (right * _input.Movement.X) +
+            (forward * -_input.Movement.Y)
         ).Normalized();
     }
 
@@ -142,17 +139,17 @@ public partial class Hazmat : CharacterBody3D
         if (_heldPuck == null)
             return;
 
-        if (Input.IsActionJustPressed("shoot"))
+        if (_input.IsShooting && !_takingShot)
         {
             _takingShot = true;
             _shotTimer = 0;
         }
-        if (Input.IsActionPressed("shoot") ||
+        if (_input.IsShooting ||
             dangle.Y < -WorldAttributes.ShotDeadzone)
         {
             _shotTimer += 1;
         }
-        if (Input.IsActionJustReleased("shoot") ||
+        if ((!_input.IsShooting && _takingShot) ||
             dangle.Y > WorldAttributes.ShotDeadzone)
         {
             float speed = _shotTimer >= WorldAttributes.SlapshotThreshold ? Attributes.ShotSpeed * Attributes.SlapshotMultiplier : Attributes.ShotSpeed;
@@ -160,10 +157,11 @@ public partial class Hazmat : CharacterBody3D
             _heldPuck.Shoot(AttackingGoal.GetTargetPoint(aim), speed);
 
             _heldPuck = null;
+            _takingShot = false;
             _shotTimer = 0;
         }
 
-        if (Input.IsActionPressed("pass"))
+        if (_input.IsPassing)
         {
             _heldPuck.PassInDirection(GetCameraRelativeDirection(aim), Attributes.PassSpeed);
 
@@ -190,16 +188,13 @@ public partial class Hazmat : CharacterBody3D
 
     private void MovePlayer(double delta, Vector2 input)
     {
-        bool isSprinting = Input.IsActionPressed("sprint");
-        bool isSkatingBackwards = Input.IsActionPressed("skate_backwards");
-
         // future direction of player
         Vector3 direction = Vector3.Zero; 
         if (input != Vector2.Zero) 
         {
             direction = GetCameraRelativeDirection(input);
 
-            Vector3 facingDirection = isSkatingBackwards ? -direction : direction;
+            Vector3 facingDirection = _input.IsSkatingBackwards ? -direction : direction;
 
             float targetAngle = Mathf.Atan2( 
                 facingDirection.X, 
@@ -226,8 +221,8 @@ public partial class Hazmat : CharacterBody3D
         if (direction != Vector3.Zero)
         {
             float speed = Attributes.SkatingSpeed;
-            if (isSprinting) speed = Attributes.SprintSpeed;
-            if (isSkatingBackwards) speed = Attributes.BackwardSpeed;
+            if (_input.IsSprinting) speed = Attributes.SprintSpeed;
+            if (_input.IsSkatingBackwards) speed = Attributes.BackwardSpeed;
 
             Vector3 desiredVelocity = direction * speed;
 

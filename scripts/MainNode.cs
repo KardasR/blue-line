@@ -37,11 +37,9 @@ public partial class MainNode : Node
     public struct PlayerSpawnConfig
     {
         public int PlayerId;
-        //public Team Team;
         public bool HomeTeam;
         public int DeviceId;
         public Vector3 SpawnPosition;
-        public PlayerAttributes Attributes;
     }
 
     #endregion Structs
@@ -153,7 +151,6 @@ public partial class MainNode : Node
             Hazmat player = PlayerScene.Instantiate<Hazmat>();
             player.HomeTeam = config.HomeTeam;
             player.DeviceId = config.DeviceId;
-            player.Attributes = config.Attributes;
             player.PlayerId = config.PlayerId;
 
             player.AttackingGoal = config.HomeTeam ? AwayNet : HomeNet;
@@ -171,7 +168,7 @@ public partial class MainNode : Node
         }
 
         CameraManager.Instance.SetMode(
-            CameraMode.FollowFixed,
+            CameraMode.SplitScreen,
             _players.Cast<Node3D>().ToList(),
             puck
         );
@@ -239,24 +236,23 @@ public partial class MainNode : Node
     {
         List<PlayerSpawnConfig> list = new();
 
-        PlayerSpawnConfig player1 = new();
+        PlayerSpawnConfig player1 = new()
+        {
+            HomeTeam = true,
+            DeviceId = 0,
+            PlayerId = 0,
+            SpawnPosition = FaceoffLineup.LineupSkater(Positions.Center, GetNode<Node3D>("Arena/Faceoff Dots/Center Ice"), true),
+        };
 
-        player1.HomeTeam = true;
-        player1.DeviceId = 0;
-        player1.PlayerId = 0;
-        player1.SpawnPosition = FaceoffLineup.LineupSkater(Positions.Center, GetNode<Node3D>("Arena/Faceoff Dots/Center Ice"), true);
-        player1.Attributes = new();
+        PlayerSpawnConfig player2 = new()
+        {
+            HomeTeam = false,
+            DeviceId = 1,
+            PlayerId = 1,
+            SpawnPosition = FaceoffLineup.LineupSkater(Positions.Center, GetNode<Node3D>("Arena/Faceoff Dots/Center Ice"), false),
+        };
 
         list.Add(player1);
-
-        PlayerSpawnConfig player2 = new();
-
-        player2.HomeTeam = false;
-        player2.DeviceId = 0;
-        player2.PlayerId = 0;
-        player2.SpawnPosition = FaceoffLineup.LineupSkater(Positions.Center, GetNode<Node3D>("Arena/Faceoff Dots/Center Ice"), false);
-        player2.Attributes = new();
-
         list.Add(player2);
 
         return list;
