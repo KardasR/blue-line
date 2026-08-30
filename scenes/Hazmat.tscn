@@ -8,6 +8,7 @@
 
 [sub_resource type="Resource" id="Resource_q8u5g"]
 script = ExtResource("2_b7y57")
+PassSpeed = 35.0
 metadata/_custom_type_script = "uid://rs7plbx7tm1l"
 
 [sub_resource type="Resource" id="Resource_lhr70"]

@@ -172,16 +172,17 @@ public partial class MainNode : Node
             Hazmat player = PlayerScene.Instantiate<Hazmat>();
             player.HomeTeam = config.HomeTeam;
             player.PlayerId = config.PlayerId;
-            player.InputDevice = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
             player.AttackingGoal = config.HomeTeam ? AwayNet : HomeNet;
 
             if (numOfContr > 0 && config.HomeTeam && _homeShotVisualizer.Controller == null)
             {
+                player.InputDevice = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
                 _homeShotVisualizer.Controller = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
                 numOfContr -= 1;
             }
-            else if (numOfContr > 0 && !config.HomeTeam)
+            else if (numOfContr > 0 && !config.HomeTeam && _awayShotVisualizer.Controller == null)
             {
+                player.InputDevice = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
                 _awayShotVisualizer.Controller = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
                 numOfContr -= 1;
             }
@@ -196,6 +197,12 @@ public partial class MainNode : Node
             };
 
             _players.Add(player);
+        }
+
+        // setup the teammates for each player.
+        foreach(Hazmat skater in _players)
+        {
+            skater.Teammates = _players.Where(s => s != skater && s.HomeTeam == skater.HomeTeam).ToList();
         }
 
         CameraManager.Instance.SetMode(

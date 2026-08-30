@@ -3,6 +3,7 @@ using Godot;
 
 using BlueLine.FrozenRubber;
 using BlueLine.VideoFeed;
+using System.Collections.Generic;
 
 namespace BlueLine.Skater;
 
@@ -18,21 +19,43 @@ public partial class Hazmat : CharacterBody3D
 
     private Camera3D _cameraPosition => CameraManager.Instance.GetCameraForPlayer(PlayerId);
 
+    private float PassTargetMinDot => Mathf.Cos(Mathf.DegToRad(PassTargetMaxAngle));
+
     #endregion Members
 
     #region Properties
 
+    /// <summary>
+    /// The various attributes of the player.
+    /// </summary>
     [Export]
     public PlayerAttributes Attributes { get; set; }
 
+    /// <summary>
+    /// The attributes of the world.
+    /// </summary>
     [Export]
     public WorldAttributes WorldAttributes { get; set; }
 
+    /// <summary>
+    /// Is this player on the home or away team?
+    /// </summary>
     public bool HomeTeam { get; set; }
 
+    /// <summary>
+    /// ID of the player.
+    /// </summary>
     public int PlayerId { get; set; }
 
+    /// <summary>
+    /// Which controller the player responds to.
+    /// </summary>
     public ControllerInput InputDevice { private get; set; }
+
+    /// <summary>
+    /// The different teammates of the player.
+    /// </summary>
+    public List<Hazmat> Teammates { get; set; }
 
     #region Puck Settings
 
@@ -47,6 +70,12 @@ public partial class Hazmat : CharacterBody3D
     /// </summary>
     [Export]
     public Net AttackingGoal { get; set; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    [Export]
+    public float PassTargetMaxAngle { get; set; } = 60.0f;
 
     #endregion Puck Settings
 
@@ -92,9 +121,12 @@ public partial class Hazmat : CharacterBody3D
     /// <param name="delta"></param>
     public override void _PhysicsProcess(double delta) 
     { 
-        MovePlayer(delta, InputDevice.Movement);
-        StickHandle(delta, InputDevice.StickHandle);
-        CheckForPuckAction(InputDevice.Movement, InputDevice.StickHandle);
+        if (InputDevice != null)
+        {
+            MovePlayer(delta, InputDevice.Movement);
+            StickHandle(delta, InputDevice.StickHandle);
+            CheckForPuckAction(InputDevice.Movement, InputDevice.StickHandle);
+        }
     } 
 
     #endregion Overrides
@@ -148,12 +180,50 @@ public partial class Hazmat : CharacterBody3D
             _shotTimer = 0;
         }
 
+        // TODO: support saucer passes.
         if (InputDevice.IsPassing)
         {
-            _heldPuck.PassInDirection(GetCameraRelativeDirection(aim), Attributes.PassSpeed);
+            Vector3 aimDirection = GetCameraRelativeDirection(aim);
+
+            if (aimDirection == Vector3.Zero)
+            {
+                // Neutral stick - keep the existing facing-direction fallback.
+                _heldPuck.PassInDirection(-GlobalTransform.Basis.Z, Attributes.PassSpeed);
+            }
+            else
+            {
+                Hazmat target = FindBestPassTarget(aimDirection);
+                if (target != null)
+                    _heldPuck.PassToTarget(target.PuckHoldPoint.GlobalPosition, Attributes.PassSpeed);
+                else
+                    _heldPuck.PassInDirection(aimDirection, Attributes.PassSpeed);
+            }
 
             _heldPuck = null;
         }
+    }
+
+    private Hazmat FindBestPassTarget(Vector3 aimDirection)
+    {
+        Hazmat best = null;
+        float bestScore = PassTargetMinDot;
+
+        foreach (var teammate in Teammates)
+        {
+            Vector3 toTeammate = teammate.PuckHoldPoint.GlobalPosition - GlobalPosition;
+            toTeammate.Y = 0;
+
+            if (toTeammate.LengthSquared() < 0.01f) continue;
+
+            float score = aimDirection.Dot(toTeammate.Normalized());
+            if (score > bestScore)
+            {
+                bestScore = score;
+                best = teammate;
+            }
+        }
+
+        return best;
     }
 
     private void StickHandle(double delta, Vector2 input)
