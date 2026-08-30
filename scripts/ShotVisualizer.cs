@@ -22,7 +22,7 @@ public partial class ShotVisualizer : RigidBody3D
     public bool GoalScored { private get; set; }
 
     public ControllerInput Controller { 
-        private get => _input; 
+        get => _input; 
         set 
         {
             // make sure we only set this once
@@ -44,7 +44,10 @@ public partial class ShotVisualizer : RigidBody3D
 
     private void ReactToFaceoffPrep(FaceoffDot faceoffDot)
     {
-        ResetVisualizer();
+        if (Controller != null)
+            ResetVisualizer();
+        else
+            HideVisualizer();
     }
 
     private void ReactToShot(Vector3 direction, float force)
@@ -65,6 +68,11 @@ public partial class ShotVisualizer : RigidBody3D
     private void ResetVisualizer()
     {
         _okayToMove = true;
+    }
+
+    private void HideVisualizer()
+    {
+        if (Visible) Visible = false;
     }
 
     public override void _Process(double delta)

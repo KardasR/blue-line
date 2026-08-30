@@ -39,18 +39,6 @@ public partial class ControllerInput : Node
         }
         if (@event is InputEventJoypadButton button)
         {
-            // if (button.IsActionPressed("shoot")) IsShooting = true;
-            // else if (button.IsActionReleased("shoot")) IsShooting = false;
-
-            // if (button.IsActionPressed("pass")) IsPassing = true;
-            // else if (button.IsActionReleased("pass")) IsPassing = false;
-
-            // if (button.IsActionPressed("sprint")) IsSprinting = true;
-            // else if (button.IsActionReleased("sprint")) IsSprinting = false;
-
-            // if (button.IsActionPressed("skate_backwards")) IsSkatingBackwards = true;
-            // else if (button.IsActionReleased("skate_backwards")) IsSkatingBackwards = false;
-
             IsShooting = button.IsActionPressed("shoot");
             IsPassing = button.IsActionPressed("pass");
             IsSprinting = button.IsActionPressed("sprint");

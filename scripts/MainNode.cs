@@ -175,7 +175,7 @@ public partial class MainNode : Node
             player.InputDevice = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
             player.AttackingGoal = config.HomeTeam ? AwayNet : HomeNet;
 
-            if (numOfContr > 0 && config.HomeTeam)
+            if (numOfContr > 0 && config.HomeTeam && _homeShotVisualizer.Controller == null)
             {
                 _homeShotVisualizer.Controller = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
                 numOfContr -= 1;
@@ -272,7 +272,7 @@ public partial class MainNode : Node
 
         PlayerSpawnConfig player2 = new()
         {
-            HomeTeam = false,
+            HomeTeam = true,
             PlayerId = 1,
             DeviceId = 1,
             SpawnPosition = FaceoffLineup.LineupSkater(Positions.Center, GetNode<Node3D>("Arena/Faceoff Dots/Center Ice"), false),
