@@ -15,6 +15,7 @@ public partial class Net : MeshInstance3D
 
     #region Properties
 
+    [ExportGroup("Dimensions")]
     /// <summary>
     /// How wide the goal is.
     /// </summary>
@@ -27,6 +28,7 @@ public partial class Net : MeshInstance3D
     [Export]
     public float Height { get; set; } = 5.3f;
 
+    [ExportGroup("Aiming")]
     /// <summary>
     /// How much stick movement is ignored in the center of the joystick.
     /// </summary>

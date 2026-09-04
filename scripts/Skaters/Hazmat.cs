@@ -13,13 +13,17 @@ public partial class Hazmat : CharacterBody3D
 
     private Puck _heldPuck;
 
+    private Node3D _puckHoldPoint;
+
     private bool _takingShot;
 
     private uint _shotTimer;
 
     private Camera3D _cameraPosition => CameraManager.Instance.GetCameraForPlayer(PlayerId);
 
-    private float PassTargetMinDot => Mathf.Cos(Mathf.DegToRad(PassTargetMaxAngle));
+    private float _passTargetMinDot => Mathf.Cos(Mathf.DegToRad(PassTargetMaxAngle));
+
+    private PokeCheck _pokeChecker;
 
     #endregion Members
 
@@ -60,12 +64,6 @@ public partial class Hazmat : CharacterBody3D
     #region Puck Settings
 
     /// <summary>
-    /// Position of where to hold the puck.
-    /// </summary>
-    [Export]
-    public Node3D PuckHoldPoint { get; set; }
-
-    /// <summary>
     /// Which goal the player is shooting at.
     /// </summary>
     [Export]
@@ -83,12 +81,21 @@ public partial class Hazmat : CharacterBody3D
 
     #region Events
     
-    public void On_Blade_BodyEntered(Node3D puck)
+    public void On_Blade_BodyEntered(Puck puck)
     {
-        if (_heldPuck == null)
+        if (puck == _heldPuck) 
+            return;
+
+        if (_pokeChecker.IsActivelyPoking)
         {
-            _heldPuck = (Puck)puck;
-            _heldPuck.Grab(PuckHoldPoint);
+            puck.PrepareForPokeCollision();
+            return;
+        }
+
+        if (_heldPuck == null && !_pokeChecker.IsActivelyPoking)
+        {
+            _heldPuck = puck;
+            _heldPuck.Grab(_puckHoldPoint);
         }
     }
 
@@ -106,14 +113,13 @@ public partial class Hazmat : CharacterBody3D
         {
             throw new InvalidOperationException("World Attributes was not given. Cannot skate");
         }
-        if (PuckHoldPoint == null)
-        {
-            throw new InvalidOperationException("No puck hold point was given. Puck cannot be grabbed.");
-        }
         if (AttackingGoal == null)
         {
             throw new InvalidOperationException("No attacking goal was given. Cannot shoot on goal.");
         }
+
+        _puckHoldPoint = GetNode<Node3D>("Stick/Pivot Point/Puck Hold Point");
+        _pokeChecker = GetNode<PokeCheck>("Stick/Pivot Point");
     }
     /// <summary>
     /// Checks if an input action has been pressed and responds accordingly
@@ -126,12 +132,27 @@ public partial class Hazmat : CharacterBody3D
             MovePlayer(delta, InputDevice.Movement);
             StickHandle(delta, InputDevice.StickHandle);
             CheckForPuckAction(InputDevice.Movement, InputDevice.StickHandle);
+            CheckForCheckingAction(InputDevice.StickHandle);
+        }
+
+        // make sure we catch when a puck has been knocked away
+        if (_heldPuck != null && _heldPuck.State != PuckStates.Held)
+        {
+            _heldPuck = null;
         }
     } 
 
     #endregion Overrides
 
     #region Private Methods
+
+    private void CheckForCheckingAction(Vector2 stickAim)
+    {
+        _pokeChecker.UpdateAim(stickAim);
+
+        if (InputDevice.PokeJustPressed()) _pokeChecker.BeginPoke();
+        if (InputDevice.PokeJustReleased()) _pokeChecker.EndPoke();
+    }
 
     private Vector3 GetCameraRelativeDirection(Vector2 input)
     {
@@ -187,14 +208,24 @@ public partial class Hazmat : CharacterBody3D
 
             if (aimDirection == Vector3.Zero)
             {
-                // Neutral stick - keep the existing facing-direction fallback.
-                _heldPuck.PassInDirection(-GlobalTransform.Basis.Z, Attributes.PassSpeed);
+                // If the stick isn't moved then just pass forward.
+                _heldPuck.PassInDirection(GlobalTransform.Basis.Z, Attributes.PassSpeed);
             }
             else
             {
                 Hazmat target = FindBestPassTarget(aimDirection);
                 if (target != null)
-                    _heldPuck.PassToTarget(target.PuckHoldPoint.GlobalPosition, Attributes.PassSpeed);
+                {
+                    Vector3 targetVelocity = new Vector3(target.Velocity.X, 0, target.Velocity.Z);
+                    Vector3 leadPosition = target._puckHoldPoint.GlobalPosition;
+
+                    if (TryGetPassingTime(target._puckHoldPoint.GlobalPosition, targetVelocity, Attributes.PassSpeed, out float t))
+                    {
+                        leadPosition = target._puckHoldPoint.GlobalPosition + targetVelocity * t;
+                    }
+
+                    _heldPuck.PassToTarget(leadPosition, Attributes.PassSpeed);
+                }
                 else
                     _heldPuck.PassInDirection(aimDirection, Attributes.PassSpeed);
             }
@@ -206,11 +237,11 @@ public partial class Hazmat : CharacterBody3D
     private Hazmat FindBestPassTarget(Vector3 aimDirection)
     {
         Hazmat best = null;
-        float bestScore = PassTargetMinDot;
+        float bestScore = _passTargetMinDot;
 
         foreach (var teammate in Teammates)
         {
-            Vector3 toTeammate = teammate.PuckHoldPoint.GlobalPosition - GlobalPosition;
+            Vector3 toTeammate = teammate._puckHoldPoint.GlobalPosition - GlobalPosition;
             toTeammate.Y = 0;
 
             if (toTeammate.LengthSquared() < 0.01f) continue;
@@ -231,11 +262,11 @@ public partial class Hazmat : CharacterBody3D
         if (_heldPuck == null)
             return;
 
-        Vector3 offset = PuckHoldPoint.GlobalTransform.Basis.X * input.X;
+        Vector3 offset = _puckHoldPoint.GlobalTransform.Basis.X * input.X;
 
         offset = offset.LimitLength(Attributes.StickHandleRange);
 
-        Vector3 targetPosition = PuckHoldPoint.GlobalPosition + offset;
+        Vector3 targetPosition = _puckHoldPoint.GlobalPosition + offset;
 
         _heldPuck.GlobalPosition = _heldPuck.GlobalPosition.Lerp(
             targetPosition,
@@ -320,6 +351,59 @@ public partial class Hazmat : CharacterBody3D
         }
         
         MoveAndSlide(); 
+    }
+
+    /// <summary>
+    /// Try to predict how far to lead the passing target.
+    /// </summary>
+    /// <param name="targetPos">Where the target is</param>
+    /// <param name="targetVelocity">The velocity of the target</param>
+    /// <param name="passSpeed">How fast we are passing the puck</param>
+    /// <param name="time"></param>
+    /// <returns></returns>
+    private bool TryGetPassingTime(
+        Vector3 targetPos,
+        Vector3 targetVelocity,
+        float passSpeed,
+        out float time)
+    {
+        Vector3 toTarget = targetPos - GlobalPosition;
+
+        float targetPassSpeed = targetVelocity.LengthSquared() - passSpeed * passSpeed;
+        float angle = 2f * toTarget.Dot(targetVelocity);
+        float distance = toTarget.LengthSquared();
+
+        // Target's speed happens to equal the pass speed - linear, not quadratic.
+        if (Mathf.Abs(targetPassSpeed) < 0.0001f)
+        {
+            if (Mathf.Abs(angle) < 0.0001f)
+            {
+                time = 0f;
+                return false;
+            }
+            time = -distance / angle;
+            return time > 0f;
+        }
+
+        float discriminant = angle * angle - 4f * targetPassSpeed * distance;
+        if (discriminant < 0f)
+        {
+            // Target is outrunning what the pass can catch up to
+            time = 0f;
+            return false;
+        }
+
+        float sqrtDisc = Mathf.Sqrt(discriminant);
+        float t1 = (-angle + sqrtDisc) / (2f * targetPassSpeed);
+        float t2 = (-angle - sqrtDisc) / (2f * targetPassSpeed);
+
+        bool found = false;
+        float best = float.MaxValue;
+        if (t1 > 0f) { best = t1; found = true; }
+        if (t2 > 0f && t2 < best) { best = t2; found = true; }
+
+        time = found ? best : 0f;
+        return found;
     }
     
     #endregion Private Methods

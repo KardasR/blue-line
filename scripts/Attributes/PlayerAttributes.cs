@@ -66,6 +66,12 @@ public partial class PlayerAttributes : Resource
     [Export]
     public float StickHandleSpeed { get; set; } = 30.0f;
 
+    /// <summary>
+    /// How hard the player pokes the puck
+    /// </summary>
+    [Export]
+    public float PokeCheckForce { get; set; } = 20.0f;
+
     #endregion Stick Handling
 
     #region Goalie

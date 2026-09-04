@@ -2,9 +2,17 @@ using Godot;
 
 public partial class ControllerInput : Node
 {
+    #region Members
+
     private bool _chargingShot;
     private Vector2 _movement;
     private Vector2 _stickHandle;
+    private bool _pokeStarted;
+    private bool _pokeEnded;
+
+    #endregion Members
+
+    #region Properties
 
     public Vector2 Movement => ApplyDeadzone(_movement);
     public Vector2 StickHandle => ApplyDeadzone(_stickHandle);
@@ -17,6 +25,10 @@ public partial class ControllerInput : Node
 
     [Export]
     public float Deadzone { private get; set; } = 0.2f;
+
+    #endregion Properties
+
+    #region Overrides
 
     public override void _Input(InputEvent @event)
     {
@@ -36,15 +48,44 @@ public partial class ControllerInput : Node
 
             else if (motion.Axis == JoyAxis.RightY)
                 _stickHandle.Y = -motion.AxisValue;
+                
+            if (motion.IsActionPressed("skate_backwards")) IsSkatingBackwards = true;
+            else if (motion.IsActionReleased("skate_backwards")) IsSkatingBackwards = false;
         }
         if (@event is InputEventJoypadButton button)
         {
             IsShooting = button.IsActionPressed("shoot");
             IsPassing = button.IsActionPressed("pass");
             IsSprinting = button.IsActionPressed("sprint");
-            IsSkatingBackwards = button.IsActionPressed("skate_backwards");
+
+            if (button.IsActionPressed("poke_check")) _pokeStarted = true;
+            else if (button.IsActionReleased("poke_check")) _pokeEnded = true;
         }
     }
+
+    #endregion Overrides
+
+    #region ?
+
+    public bool PokeJustPressed()
+    {
+        if (!_pokeStarted) return false;
+
+        _pokeStarted = false;
+        return true;
+    }
+
+    public bool PokeJustReleased()
+    {
+        if (!_pokeEnded) return false;
+
+        _pokeEnded = false;
+        return true;
+    }
+
+    #endregion ?
+
+    #region Private Methods
 
     /// <summary>
     /// Rescale so output ramps smoothly from 0 right past the deadzone,
@@ -61,4 +102,6 @@ public partial class ControllerInput : Node
         float rescaled = (length - Deadzone) / (1f - Deadzone);
         return input.Normalized() * rescaled;
     }
+
+    #endregion Private Methods
 }

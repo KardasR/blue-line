@@ -83,7 +83,7 @@ script = ExtResource("8_jlsqs")
 Net = NodePath("../Arena/Joe Louis Arena/Goal A")
 
 [node name="Away Goalie" parent="." unique_id=1075997564 node_paths=PackedStringArray("LeftMostPos", "RightMostPos") instance=ExtResource("8_q8u5g")]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -79.117744, 0.05887556, -0.0067050457)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -79.118, 0, 0)
 collision_layer = 32
 collision_mask = 23
 Attributes = SubResource("Resource_8qu1r")
@@ -92,7 +92,7 @@ LeftMostPos = NodePath("../Arena/Joe Louis Arena/Goal B/Left Goalie")
 RightMostPos = NodePath("../Arena/Joe Louis Arena/Goal B/Right Goalie")
 
 [node name="Home Goalie" parent="." unique_id=1376792103 node_paths=PackedStringArray("LeftMostPos", "RightMostPos") instance=ExtResource("8_q8u5g")]
-transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 78.17148, 0.769086, 0.121588096)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 78.171, 0, 0)
 collision_layer = 32
 collision_mask = 23
 Attributes = SubResource("Resource_s03s6")

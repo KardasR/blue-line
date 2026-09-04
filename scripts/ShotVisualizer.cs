@@ -6,9 +6,15 @@ namespace BlueLine;
 
 public partial class ShotVisualizer : RigidBody3D
 {
+    #region Members
+
     private bool _okayToMove;
 
     private ControllerInput _input;
+
+    #endregion Members
+
+    #region Properties
 
     /// <summary>
     /// What goal the target hovers over.
@@ -34,6 +40,10 @@ public partial class ShotVisualizer : RigidBody3D
         } 
     }
 
+    #endregion Properties
+
+    #region Overrides
+
     public override void _Ready()
     {
         GameEvents.Instance.ShotFired += ReactToShot;
@@ -41,6 +51,18 @@ public partial class ShotVisualizer : RigidBody3D
         GameEvents.Instance.GoalScored += ReactToGoal;
         GameEvents.Instance.PrepareFaceoff += ReactToFaceoffPrep;
     }
+
+    public override void _Process(double delta)
+    {
+        if (_okayToMove)
+            GlobalPosition = Net.GetTargetPoint(Controller.Movement);
+        else
+            GlobalPosition = GlobalPosition;
+    }
+
+    #endregion Overrides
+
+    #region Private Methods
 
     private void ReactToFaceoffPrep(FaceoffDot faceoffDot)
     {
@@ -67,7 +89,8 @@ public partial class ShotVisualizer : RigidBody3D
 
     private void ResetVisualizer()
     {
-        _okayToMove = true;
+        if (Controller != null)
+            _okayToMove = true;
     }
 
     private void HideVisualizer()
@@ -75,12 +98,6 @@ public partial class ShotVisualizer : RigidBody3D
         if (Visible) Visible = false;
     }
 
-    public override void _Process(double delta)
-    {
-        if (_okayToMove)
-            GlobalPosition = Net.GetTargetPoint(Controller.Movement);
-        else
-            GlobalPosition = GlobalPosition;
-    }
-
+    #endregion Private Methods
+    
 }

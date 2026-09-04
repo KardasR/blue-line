@@ -170,20 +170,21 @@ public partial class MainNode : Node
         foreach (PlayerSpawnConfig config in BuildSpawnConfigs())
         {
             Hazmat player = PlayerScene.Instantiate<Hazmat>();
+            player.Name = $"Skater-{config.PlayerId}";
             player.HomeTeam = config.HomeTeam;
             player.PlayerId = config.PlayerId;
             player.AttackingGoal = config.HomeTeam ? AwayNet : HomeNet;
 
-            if (numOfContr > 0 && config.HomeTeam && _homeShotVisualizer.Controller == null)
+            if (numOfContr > 0 && config.HomeTeam)
             {
                 player.InputDevice = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
-                _homeShotVisualizer.Controller = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
+                _homeShotVisualizer.Controller = _homeShotVisualizer.Controller == null ? GetNode<ControllerInput>($"ControllerInput{config.DeviceId}") : null;
                 numOfContr -= 1;
             }
-            else if (numOfContr > 0 && !config.HomeTeam && _awayShotVisualizer.Controller == null)
+            else if (numOfContr > 0 && !config.HomeTeam)
             {
                 player.InputDevice = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
-                _awayShotVisualizer.Controller = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
+                _awayShotVisualizer.Controller = _awayShotVisualizer.Controller == null ? GetNode<ControllerInput>($"ControllerInput{config.DeviceId}") : null;
                 numOfContr -= 1;
             }
 
@@ -267,7 +268,7 @@ public partial class MainNode : Node
 
     private List<PlayerSpawnConfig> BuildSpawnConfigs()
     {
-        List<PlayerSpawnConfig> list = new();
+        List<PlayerSpawnConfig> list = [];
 
         PlayerSpawnConfig player1 = new()
         {
@@ -279,7 +280,7 @@ public partial class MainNode : Node
 
         PlayerSpawnConfig player2 = new()
         {
-            HomeTeam = true,
+            HomeTeam = false,
             PlayerId = 1,
             DeviceId = 1,
             SpawnPosition = FaceoffLineup.LineupSkater(Positions.Center, GetNode<Node3D>("Arena/Faceoff Dots/Center Ice"), false),

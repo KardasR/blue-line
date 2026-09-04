@@ -10,18 +10,17 @@ namespace BlueLine.FrozenRubber;
 
 public partial class Puck : RigidBody3D
 {
-    #region Members
-
-    private PuckStates _puckState;
-
-    #endregion Members
-
     #region Properties
 
     /// <summary>
     /// A node that contains a collection of node3d's that represent different faceoff dots.
     /// </summary>
     public Node FaceoffLocations { get; set; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public PuckStates State { get; set; }
 
     #endregion Properties
 
@@ -35,7 +34,7 @@ public partial class Puck : RigidBody3D
 
         GameEvents.Instance.PrepareFaceoff += DropThePuck;
 
-        _puckState = PuckStates.Loose;
+        State = PuckStates.Loose;
     }
 
     #endregion Overrides
@@ -44,7 +43,7 @@ public partial class Puck : RigidBody3D
 
     private void On_BodyEntered(Node body)
     {
-        if (_puckState == PuckStates.Shot &&
+        if (State == PuckStates.Shot &&
             body is Goalie)
         {
             PuckSaved();
@@ -60,10 +59,10 @@ public partial class Puck : RigidBody3D
     /// </summary>
     public void PuckSaved()
     {
-        if (_puckState != PuckStates.Shot)
+        if (State != PuckStates.Shot)
             return;
 
-        _puckState = PuckStates.Loose;
+        State = PuckStates.Loose;
         GameEvents.Instance.RaisePuckSaved();
     }
 
@@ -74,7 +73,7 @@ public partial class Puck : RigidBody3D
     /// <param name="force">How hard to shoot the puck</param>
     public void Shoot(Vector3 direction, float force)
     {
-        if (_puckState != PuckStates.Held)
+        if (State != PuckStates.Held)
             return;
         
         Reparent(GetTree().CurrentScene);
@@ -84,7 +83,7 @@ public partial class Puck : RigidBody3D
         ).Normalized();
 
         Freeze = false;
-        _puckState = PuckStates.Shot;
+        State = PuckStates.Shot;
 
         GameEvents.Instance.RaiseShotFired(target, force);
         LinearVelocity = target * force;
@@ -107,12 +106,12 @@ public partial class Puck : RigidBody3D
     /// <param name="grabPoint"></param>
     public void Grab(Node3D grabPoint)
     {
-        if (_puckState == PuckStates.Held)
+        if (State == PuckStates.Held)
             return;
 
         ResetPuck();
         
-        _puckState = PuckStates.Held;
+        State = PuckStates.Held;
 
         Freeze = true;
         GlobalPosition = grabPoint.GlobalPosition;
@@ -129,7 +128,21 @@ public partial class Puck : RigidBody3D
         LinearVelocity = Vector3.Zero;
         AngularVelocity = Vector3.Zero;
         Rotation = Vector3.Zero;
-        _puckState = PuckStates.Loose;
+        State = PuckStates.Loose;
+    }
+
+    /// <summary>
+    /// Unfreeze the puck in preparation for a poke check.
+    /// </summary>
+    public void PrepareForPokeCollision()
+    {
+        if (State == PuckStates.Loose) 
+            return;
+
+        Reparent(GetTree().CurrentScene);
+
+        Freeze = false;
+        ResetPuck();
     }
 
     #endregion Public Methods
@@ -143,13 +156,13 @@ public partial class Puck : RigidBody3D
     /// <param name="force"></param>
     private void PassInternal(Vector3 direction, float force)
     {
-        if (_puckState != PuckStates.Held)
+        if (State != PuckStates.Held)
             return;
 
         Reparent(GetTree().CurrentScene);
 
         Freeze = false;
-        _puckState = PuckStates.Pass;
+        State = PuckStates.Pass;
 
         LinearVelocity = direction * force;
 
@@ -166,6 +179,14 @@ public partial class Puck : RigidBody3D
         if (FaceoffLocations == null)
         {
             throw new InvalidOperationException("No faceoff location node was given. Cannot spawn puck.");
+        }
+        async Task MakeThemWait(FaceoffDot faceoffDot)
+        {
+            await ToSignal(GetTree().CreateTimer(2), SceneTreeTimer.SignalName.Timeout);
+
+            Freeze = false;
+
+            GameEvents.Instance.RaisePuckDropped(faceoffDot);
         }
 
         Vector3 faceoffLocation = new();
@@ -215,15 +236,6 @@ public partial class Puck : RigidBody3D
         GlobalPosition = faceoffLocation;
         
         Task.Run(() => MakeThemWait(faceoffDot));
-    }
-
-    private async Task MakeThemWait(FaceoffDot faceoffDot)
-    {
-        await ToSignal(GetTree().CreateTimer(2), SceneTreeTimer.SignalName.Timeout);
-
-        Freeze = false;
-
-        GameEvents.Instance.RaisePuckDropped(faceoffDot);
     }
 
     #endregion Private Methods

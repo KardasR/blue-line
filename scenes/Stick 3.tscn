@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://bv1pjejsh7047"]
+
+[ext_resource type="PackedScene" uid="uid://spvhypvseyef" path="res://models/Stick/playerstick.blend" id="1_0fyel"]
+[ext_resource type="Script" uid="uid://bko1em0qiw44h" path="res://scripts/Skaters/PokeCheck.cs" id="1_nbsiw"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1sys4"]
+size = Vector3(1.0415039, 0.32543945, 0.08602905)
+
+[node name="Stick" type="Node3D" unique_id=1060635180]
+
+[node name="Pivot Point" type="Node3D" parent="." unique_id=2068199367]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.3161483, 3.82082, 0)
+script = ExtResource("1_nbsiw")
+ExtendSpeed = 10.0
+TrackingSpeed = 5.0
+RetractSpeed = 8.0
+
+[node name="Puck Hold Point" type="Node3D" parent="Pivot Point" unique_id=395275002]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.732731, -3.82082, 0.32315588)
+
+[node name="Model" parent="Pivot Point" unique_id=2063121888 instance=ExtResource("1_0fyel")]
+transform = Transform3D(-0.7575128, 7.682127e-08, 0.6528203, 0.6528203, -2.8958764e-08, 0.7575128, 7.709797e-08, 1, -2.8213847e-08, -1.946, -1.639, 0)
+
+[node name="Blade" type="Area3D" parent="Pivot Point" unique_id=1937794197]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.6851158, -3.8070512, 0)
+collision_layer = 64
+collision_mask = 4
+
+[node name="Hitbox" type="CollisionShape3D" parent="Pivot Point/Blade" unique_id=1831371601]
+transform = Transform3D(0.99383837, 0, 0.11083979, 0, 1, 0, -0.11083979, 0, 0.99383837, -0.022667527, 0.15026855, 0.08030867)
+shape = SubResource("BoxShape3D_1sys4")
