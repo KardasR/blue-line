@@ -92,7 +92,7 @@ public partial class Hazmat : CharacterBody3D
             return;
         }
 
-        if (_heldPuck == null && !_pokeChecker.IsActivelyPoking)
+        if (_heldPuck == null && !_pokeChecker.IsActivelyPoking && puck.State != PuckStates.Held)
         {
             _heldPuck = puck;
             _heldPuck.Grab(_puckHoldPoint);
@@ -184,7 +184,7 @@ public partial class Hazmat : CharacterBody3D
             _takingShot = true;
             _shotTimer = 0;
         }
-        if (InputDevice.IsShooting ||
+        if (_takingShot ||
             dangle.Y < -WorldAttributes.ShotDeadzone)
         {
             _shotTimer += 1;

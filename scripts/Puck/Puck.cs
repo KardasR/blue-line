@@ -54,6 +54,20 @@ public partial class Puck : RigidBody3D
 
     #region Public Methods
 
+    public void Poke(Vector3 direction, float force)
+    {
+        direction.Y = 0.0f;
+
+        if (direction.LengthSquared() < 0.001f)
+            return;
+
+        direction = direction.Normalized();
+
+        State = PuckStates.Loose;
+        //LinearVelocity = direction * force;
+        ApplyCentralImpulse(direction * force);
+    }
+
     /// <summary>
     /// Mark when a shot was saved.
     /// </summary>

@@ -54,9 +54,14 @@ public partial class ControllerInput : Node
         }
         if (@event is InputEventJoypadButton button)
         {
-            IsShooting = button.IsActionPressed("shoot");
-            IsPassing = button.IsActionPressed("pass");
-            IsSprinting = button.IsActionPressed("sprint");
+            if (button.IsActionPressed("shoot")) IsShooting = true;
+            else if (button.IsActionReleased("shoot")) IsShooting = false;
+
+            if (button.IsActionPressed("pass")) IsPassing = true;
+            else if (button.IsActionReleased("pass")) IsPassing = false;
+
+            if (button.IsActionPressed("sprint")) IsSprinting = true;
+            else if (button.IsActionReleased("sprint")) IsSprinting = false;
 
             if (button.IsActionPressed("poke_check")) _pokeStarted = true;
             else if (button.IsActionReleased("poke_check")) _pokeEnded = true;
@@ -65,7 +70,7 @@ public partial class ControllerInput : Node
 
     #endregion Overrides
 
-    #region ?
+    #region Is Action Pressed?
 
     public bool PokeJustPressed()
     {
@@ -83,7 +88,7 @@ public partial class ControllerInput : Node
         return true;
     }
 
-    #endregion ?
+    #endregion Is Action Pressed?
 
     #region Private Methods
 

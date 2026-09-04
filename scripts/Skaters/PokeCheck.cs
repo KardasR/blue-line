@@ -1,4 +1,7 @@
+using System;
 using Godot;
+
+using BlueLine.FrozenRubber;
 
 namespace BlueLine.Skater;
 
@@ -11,9 +14,8 @@ public partial class PokeCheck : Node3D
     private float _pokeYaw;
     private bool _buttonHeld;
     private Vector2 _currentStickInput;
+    private Vector3 _previousBladePosition;
     private PokeState _state = PokeState.Resting;
-
-    private const float NEUTRALSWEEPANGLE = 90.0f;
 
     #endregion Members
 
@@ -52,6 +54,24 @@ public partial class PokeCheck : Node3D
     [Export]
     public AnimatableBody3D StickPhysics { get; set; }
 
+    [Export]
+    public ShapeCast3D PokeShapeCast { private get; set; }
+
+    [Export]
+    public Marker3D BladeCenter { private get; set; }
+
+    [Export]
+    public float PokeForceMultiplier { get; set; } = 1.0f;
+
+    [Export]
+    public float MinimumPokeForce { get; set; } = 5.0f;
+
+    [Export]
+    public float MaximumPokeForce { get; set; } = 30.0f;
+
+    [Export]
+    public float MinimumPokeSpeed { get; set; } = 1.0f;
+
     public bool IsActivelyPoking => _state is PokeState.Extending or PokeState.Holding;
 
     public Vector3 CurrentWorldDirection => GlobalTransform.Basis.Z; // match the stick's local forward axis
@@ -62,14 +82,30 @@ public partial class PokeCheck : Node3D
 
     public override void _Ready()
     {
+        if (StickPhysics == null)
+        {
+            throw new InvalidOperationException("No Stick Physics was given.");
+        }
+        if (StickPhysicsTarget == null)
+        {
+            throw new InvalidOperationException("No Stick Physics Target was given.");
+        }
+        if (PokeShapeCast == null)
+        {
+            throw new InvalidOperationException("No Poke Shape Cast was given.");
+        }
+
         _restYaw = Rotation.Y;
         _restPitch = Rotation.X;
+
+        _previousBladePosition = BladeCenter.GlobalPosition;
     }
 
     public override void _PhysicsProcess(double delta)
     {
         UpdatePokeState(delta);
         UpdatePhysicsStick();
+        CheckForPuckSweep(delta);
     }
 
     #endregion Overrides
@@ -106,6 +142,56 @@ public partial class PokeCheck : Node3D
     #endregion Public Methods
 
     #region Private Methods
+
+    private void CheckForPuckSweep(double delta)
+    {
+        if (!IsActivelyPoking)
+            return;
+
+        Vector3 currentPosition = BladeCenter.GlobalPosition;
+
+        Vector3 movement = currentPosition - _previousBladePosition;
+
+        float movementSpeed = movement.Length() / (float)delta;
+
+        if (movementSpeed < MinimumPokeSpeed)
+        {
+            _previousBladePosition = currentPosition;
+            return;
+        }
+
+        if (movement.LengthSquared() < 0.0001f)
+        {
+            _previousBladePosition = currentPosition;
+            return;
+        }
+
+        PokeShapeCast.GlobalPosition = _previousBladePosition;
+        PokeShapeCast.TargetPosition = movement;
+
+        PokeShapeCast.ForceShapecastUpdate();
+
+        for (int i = 0; i < PokeShapeCast.GetCollisionCount(); i++)
+        {
+            if (PokeShapeCast.GetCollider(i) is Puck puck)
+            {
+                Vector3 pokeDirection = movement.Normalized();
+
+                float pokeForce =
+                    Mathf.Clamp(
+                        movementSpeed * PokeForceMultiplier,
+                        MinimumPokeForce,
+                        MaximumPokeForce
+                    );
+
+                puck.Poke(pokeDirection, pokeForce);
+
+                break;
+            }
+        }
+
+        _previousBladePosition = currentPosition;
+    }
     
     private void UpdatePokeState(double delta)
     {
@@ -156,9 +242,6 @@ public partial class PokeCheck : Node3D
 
     private void UpdatePhysicsStick()
     {
-        if (StickPhysics == null || StickPhysicsTarget == null)
-            return;
-
         StickPhysics.GlobalTransform = StickPhysicsTarget.GlobalTransform;
     }
 
