@@ -28,4 +28,10 @@ public partial class WorldAttributes : Resource
     /// </summary>
     [Export]
     public float ShotDeadzone { get; set; } = 0.5f;
+
+    /// <summary>
+    /// How hard the puck is pushed after a body check is landed.
+    /// </summary>
+    [Export]
+    public float BodyCheckPuckDropForce { get; set; } = 10.0f;
 }

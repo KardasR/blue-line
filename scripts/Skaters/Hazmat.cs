@@ -4,6 +4,7 @@ using Godot;
 using BlueLine.FrozenRubber;
 using BlueLine.VideoFeed;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BlueLine.Skater;
 
@@ -24,6 +25,16 @@ public partial class Hazmat : CharacterBody3D
     private float _passTargetMinDot => Mathf.Cos(Mathf.DegToRad(PassTargetMaxAngle));
 
     private PokeCheck _pokeChecker;
+
+    private ShapeCast3D _bodyCheckZone;
+
+    private PlayerState _playerState = PlayerState.Active;
+
+    private BodyCheckState _bodyCheckState = BodyCheckState.Ready;
+
+    private Node3D _modelVisual;
+
+    private bool _isAbleToDoStuff => _playerState == PlayerState.Active && _bodyCheckState == BodyCheckState.Ready;
 
     #endregion Members
 
@@ -50,6 +61,18 @@ public partial class Hazmat : CharacterBody3D
     /// ID of the player.
     /// </summary>
     public int PlayerId { get; set; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    [Export]
+    public float BodyCheckChargeTime { get; set; } = 0.5f;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    [Export]
+    public float BodyCheckRecoveryTime { get; set; } = 2.0f;
 
     /// <summary>
     /// Which controller the player responds to.
@@ -79,11 +102,30 @@ public partial class Hazmat : CharacterBody3D
 
     #endregion Properties
 
+    #region Enums
+
+    private enum BodyCheckState
+    {
+        Ready,
+        Windup,
+        Recovery
+    }
+
+    private enum PlayerState
+    {
+        //TODO: come up with a better name
+        Active,
+        Downed,
+        Stumbling
+    }
+
+    #endregion Enums
+
     #region Events
     
     public void On_Blade_BodyEntered(Puck puck)
     {
-        if (puck == _heldPuck) 
+        if (puck == _heldPuck || !_isAbleToDoStuff) 
             return;
 
         if (_pokeChecker.IsActivelyPoking)
@@ -97,6 +139,17 @@ public partial class Hazmat : CharacterBody3D
             _heldPuck = puck;
             _heldPuck.Grab(_puckHoldPoint);
         }
+    }
+
+    public void On_SkateDetector_BodyEntered(Puck puck)
+    {
+        if (puck == _heldPuck || !_isAbleToDoStuff)
+            return;
+
+        puck.ResetPuck();
+        _heldPuck = puck;
+        
+        puck.Grab(_puckHoldPoint);
     }
 
     #endregion Events
@@ -120,6 +173,8 @@ public partial class Hazmat : CharacterBody3D
 
         _puckHoldPoint = GetNode<Node3D>("Stick/Pivot Point/Puck Hold Point");
         _pokeChecker = GetNode<PokeCheck>("Stick/Pivot Point");
+        _bodyCheckZone = GetNode<ShapeCast3D>("Body Check Zone");
+        _modelVisual = GetNode<Node3D>("Model");
     }
     /// <summary>
     /// Checks if an input action has been pressed and responds accordingly
@@ -127,7 +182,8 @@ public partial class Hazmat : CharacterBody3D
     /// <param name="delta"></param>
     public override void _PhysicsProcess(double delta) 
     { 
-        if (InputDevice != null)
+        if (InputDevice != null && 
+            _playerState == PlayerState.Active)
         {
             MovePlayer(delta, InputDevice.Movement);
             StickHandle(delta, InputDevice.StickHandle);
@@ -144,16 +200,126 @@ public partial class Hazmat : CharacterBody3D
 
     #endregion Overrides
 
-    #region Private Methods
+    #region Public Methods
 
-    private void CheckForCheckingAction(Vector2 stickAim)
+    /// <summary>
+    /// Respond to the player being body checked.
+    /// </summary>
+    /// <param name="skater"></param>
+    public void ReceiveBodyCheck(Hazmat skater)
     {
-        _pokeChecker.UpdateAim(stickAim);
+        if (_playerState == PlayerState.Downed)
+            return;
+        
+        _playerState = PlayerState.Downed;
 
-        if (InputDevice.PokeJustPressed()) _pokeChecker.BeginPoke();
-        if (InputDevice.PokeJustReleased()) _pokeChecker.EndPoke();
+        _modelVisual.Rotation = new Vector3(-(Mathf.Pi / 2.0f), 0, 0);
+
+        _heldPuck?.Poke(skater.GlobalBasis.X, WorldAttributes.BodyCheckPuckDropForce);
+        _heldPuck = null;
+
+        //Task.Run(() => RecoverFromBodyCheck());
+        _ = GetBackUp();
     }
 
+    #endregion Public Methods
+
+    #region Private Methods
+
+    /// <summary>
+    /// After a body check make the player get back up and reset themselves.
+    /// </summary>
+    /// <returns></returns>
+    private async Task GetBackUp()
+    {
+        await ToSignal(GetTree().CreateTimer(BodyCheckRecoveryTime), SceneTreeTimer.SignalName.Timeout);
+
+        _playerState = PlayerState.Active;
+        _modelVisual.Rotation = Vector3.Zero;
+    }
+
+    /// <summary>
+    /// Start to perform a body check.
+    /// </summary>
+    private void BeginBodyCheck()
+    {
+        // TODO: in the future the animation and detector should take the right stick into account to "aim"
+
+        _bodyCheckState = BodyCheckState.Windup;
+        //Task.Run(() => WaitToTriggerBodyCheck());
+        _ = WaitToTriggerBodyCheck();   // suggested by A.I. because godot logic shouldn't be on another thread
+    }
+
+    /// <summary>
+    /// Placeholder for a body check animation.
+    /// </summary>
+    /// <returns></returns>
+    private async Task WaitToTriggerBodyCheck()
+    {
+        // this timer simulates waiting for the "charging" animation to finish
+        await ToSignal(GetTree().CreateTimer(BodyCheckChargeTime), SceneTreeTimer.SignalName.Timeout);
+
+        PerformBodyCheck();
+    }
+
+    /// <summary>
+    /// Placeholder for a post perform body check animation.
+    /// </summary>
+    /// <returns></returns>
+    private async Task WaitToRecoverFromBodyCheck()
+    {
+        _bodyCheckState = BodyCheckState.Recovery;
+
+        // this timer simulates waiting for the "recovery" animation to finish
+        await ToSignal(GetTree().CreateTimer(BodyCheckChargeTime), SceneTreeTimer.SignalName.Timeout);
+
+        _bodyCheckState = BodyCheckState.Ready;
+    }
+
+    /// <summary>
+    /// Checks to see if there is anyone to bodycheck. Perform a body check animation regardless.
+    /// </summary>
+    private void PerformBodyCheck()
+    {
+        for (int i = 0; i < _bodyCheckZone.GetCollisionCount(); i++)
+        {
+            if (_bodyCheckZone.GetCollider(i) is Hazmat skater && skater.HomeTeam != HomeTeam)
+            {
+                skater.ReceiveBodyCheck(this);
+            }
+        }
+
+        //Task.Run(() => WaitToRecoverFromBodyCheck());
+        _ = WaitToRecoverFromBodyCheck();
+    }
+
+    /// <summary>
+    /// See if the player wants to perform a stick check or body check.
+    /// </summary>
+    /// <param name="stickAim"></param>
+    private void CheckForCheckingAction(Vector2 stickAim)
+    {
+        if (!_isAbleToDoStuff ||
+            _heldPuck != null)
+            return;
+
+        _pokeChecker.UpdateAim(stickAim);
+
+        if (InputDevice.PokeJustPressed()) 
+            _pokeChecker.BeginPoke();
+
+        if (InputDevice.PokeJustReleased()) 
+            _pokeChecker.EndPoke();
+
+        if (InputDevice.IsBodyChecking)
+            BeginBodyCheck();
+    }
+
+    /// <summary>
+    /// Forward in relation to the camera.
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
     private Vector3 GetCameraRelativeDirection(Vector2 input)
     {
         if (input == Vector2.Zero)
@@ -174,9 +340,15 @@ public partial class Hazmat : CharacterBody3D
         ).Normalized();
     }
 
+    /// <summary>
+    /// See if the player wants to shoot or pass.
+    /// </summary>
+    /// <param name="aim"></param>
+    /// <param name="dangle"></param>
     private void CheckForPuckAction(Vector2 aim, Vector2 dangle)
     {
-        if (_heldPuck == null)
+        if (_heldPuck == null ||
+            !_isAbleToDoStuff)
             return;
 
         if (InputDevice.IsShooting && !_takingShot)
@@ -234,6 +406,11 @@ public partial class Hazmat : CharacterBody3D
         }
     }
 
+    /// <summary>
+    /// See if there is a teammate to pass to in the direction the player is pointing.
+    /// </summary>
+    /// <param name="aimDirection"></param>
+    /// <returns></returns>
     private Hazmat FindBestPassTarget(Vector3 aimDirection)
     {
         Hazmat best = null;
@@ -257,9 +434,15 @@ public partial class Hazmat : CharacterBody3D
         return best;
     }
 
+    /// <summary>
+    /// Danglezzzz.
+    /// </summary>
+    /// <param name="delta"></param>
+    /// <param name="input"></param>
     private void StickHandle(double delta, Vector2 input)
     {
-        if (_heldPuck == null)
+        if (_heldPuck == null ||
+            !_isAbleToDoStuff)
             return;
 
         Vector3 offset = _puckHoldPoint.GlobalTransform.Basis.X * input.X;
@@ -274,8 +457,16 @@ public partial class Hazmat : CharacterBody3D
         );
     }
 
+    /// <summary>
+    /// Skate around the rink.
+    /// </summary>
+    /// <param name="delta"></param>
+    /// <param name="input"></param>
     private void MovePlayer(double delta, Vector2 input)
     {
+        if (!_isAbleToDoStuff)
+            return;
+
         // future direction of player
         Vector3 direction = Vector3.Zero; 
         if (input != Vector2.Zero) 

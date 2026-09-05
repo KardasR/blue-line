@@ -54,6 +54,21 @@ public partial class Puck : RigidBody3D
 
     #region Public Methods
 
+    public void Drop(Vector3 direction, float force)
+    {
+        if (State != PuckStates.Held)
+            return;
+
+        Reparent(GetTree().CurrentScene);
+        Freeze = false;
+        State = PuckStates.Loose;
+
+        direction.Y = 0.0f;
+        direction = direction.Normalized();
+
+        ApplyCentralImpulse(direction * force);
+    }
+
     public void Poke(Vector3 direction, float force)
     {
         direction.Y = 0.0f;
@@ -139,6 +154,7 @@ public partial class Puck : RigidBody3D
     public void ResetPuck()
     {
         // Reset anything from prior use
+        Freeze = false;
         LinearVelocity = Vector3.Zero;
         AngularVelocity = Vector3.Zero;
         Rotation = Vector3.Zero;
@@ -155,7 +171,6 @@ public partial class Puck : RigidBody3D
 
         Reparent(GetTree().CurrentScene);
 
-        Freeze = false;
         ResetPuck();
     }
 

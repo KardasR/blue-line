@@ -20,6 +20,7 @@ public partial class ControllerInput : Node
     public bool IsPassing { get; private set; }
     public bool IsSprinting { get; private set; }
     public bool IsSkatingBackwards { get; private set; }
+    public bool IsBodyChecking { get; private set; }
 
     public int DeviceId { get; set; } = 0;
 
@@ -65,6 +66,9 @@ public partial class ControllerInput : Node
 
             if (button.IsActionPressed("poke_check")) _pokeStarted = true;
             else if (button.IsActionReleased("poke_check")) _pokeEnded = true;
+
+            if (button.IsActionPressed("body_check")) IsBodyChecking = true;
+            else if (button.IsActionReleased("body_check")) IsBodyChecking = false;
         }
     }
 
