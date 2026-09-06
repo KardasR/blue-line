@@ -5,6 +5,8 @@ using BlueLine.FrozenRubber;
 using BlueLine.VideoFeed;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
+using BlueLine.Management;
 
 namespace BlueLine.Skater;
 
@@ -58,6 +60,11 @@ public partial class Hazmat : CharacterBody3D
     public bool HomeTeam { get; set; }
 
     /// <summary>
+    /// What position the player is slotted in.
+    /// </summary>
+    public Positions Assignment { get; set; }
+
+    /// <summary>
     /// ID of the player.
     /// </summary>
     public int PlayerId { get; set; }
@@ -77,7 +84,7 @@ public partial class Hazmat : CharacterBody3D
     /// <summary>
     /// Which controller the player responds to.
     /// </summary>
-    public ControllerInput InputDevice { private get; set; }
+    public ControllerInput InputDevice { get; set; }
 
     /// <summary>
     /// The different teammates of the player.
@@ -136,8 +143,7 @@ public partial class Hazmat : CharacterBody3D
 
         if (_heldPuck == null && !_pokeChecker.IsActivelyPoking && puck.State != PuckStates.Held)
         {
-            _heldPuck = puck;
-            _heldPuck.Grab(_puckHoldPoint);
+            GrabPuck(puck);
         }
     }
 
@@ -146,10 +152,7 @@ public partial class Hazmat : CharacterBody3D
         if (puck == _heldPuck || !_isAbleToDoStuff)
             return;
 
-        puck.ResetPuck();
-        _heldPuck = puck;
-        
-        puck.Grab(_puckHoldPoint);
+        GrabPuck(puck);
     }
 
     #endregion Events
@@ -182,19 +185,22 @@ public partial class Hazmat : CharacterBody3D
     /// <param name="delta"></param>
     public override void _PhysicsProcess(double delta) 
     { 
-        if (InputDevice != null && 
-            _playerState == PlayerState.Active)
-        {
-            MovePlayer(delta, InputDevice.Movement);
-            StickHandle(delta, InputDevice.StickHandle);
-            CheckForPuckAction(InputDevice.Movement, InputDevice.StickHandle);
-            CheckForCheckingAction(InputDevice.StickHandle);
-        }
-
         // make sure we catch when a puck has been knocked away
         if (_heldPuck != null && _heldPuck.State != PuckStates.Held)
         {
             _heldPuck = null;
+        }
+
+        if (InputDevice == null)
+            return;
+
+        MovePlayer(delta, InputDevice.Movement);
+
+        if (_playerState == PlayerState.Active)
+        {
+            StickHandle(delta, InputDevice.StickHandle);
+            CheckForPuckAction(InputDevice.Movement, InputDevice.StickHandle);
+            CheckForCheckingAction(InputDevice.StickHandle);
         }
     } 
 
@@ -217,14 +223,23 @@ public partial class Hazmat : CharacterBody3D
 
         _heldPuck?.Poke(skater.GlobalBasis.X, WorldAttributes.BodyCheckPuckDropForce);
         _heldPuck = null;
-
-        //Task.Run(() => RecoverFromBodyCheck());
+        
         _ = GetBackUp();
     }
 
     #endregion Public Methods
 
     #region Private Methods
+
+    private void GrabPuck(Puck puck)
+    {
+        puck.ResetPuck();
+
+        _heldPuck = puck;
+        _heldPuck.Grab(_puckHoldPoint);
+
+        GameEvents.Instance.RaiseNewPuckCarrier(this);
+    }
 
     /// <summary>
     /// After a body check make the player get back up and reset themselves.
@@ -464,8 +479,12 @@ public partial class Hazmat : CharacterBody3D
     /// <param name="input"></param>
     private void MovePlayer(double delta, Vector2 input)
     {
-        if (!_isAbleToDoStuff)
+        //BodyCheckState n;
+        if (_playerState != PlayerState.Active)
+        {
+            MoveAndSlide();
             return;
+        }
 
         // future direction of player
         Vector3 direction = Vector3.Zero; 

@@ -31,7 +31,8 @@ public class SplitScreenCameraRig : ICameraRig
             throw new InvalidOperationException("No UI parent was given. Cannot setup split screen cameras.");
         }
 
-        for (int i = 0; i < players.Count; i++)
+        //for (int i = 0; i < players.Count; i++)
+        for (int i = 0; i < 2; i++)
         {
             // left/right
             SubViewportContainer container = new()

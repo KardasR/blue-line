@@ -36,13 +36,7 @@ public partial class MainNode : Node
 
     #region Structs
 
-    public struct PlayerSpawnConfig
-    {
-        public int PlayerId;
-        public int DeviceId;
-        public bool HomeTeam;
-        public Vector3 SpawnPosition;
-    }
+
 
     #endregion Structs
 
@@ -101,6 +95,8 @@ public partial class MainNode : Node
     /// </summary>
     public IReadOnlyList<Hazmat> Players => _players;
 
+    public GameState CurrentGameState { get; private set; }
+
     #endregion Properties
 
     #region Events
@@ -113,6 +109,13 @@ public partial class MainNode : Node
     public void On_GoalScored(bool homeGoal)
     {
         GoalScored(homeGoal);
+    }
+
+
+    public void On_ControllerConnectionChanged(long deviceID, bool connected)
+    {
+        // TODO: handle dynamically responding to controller plugins/unplugs
+        // search the players list for deviceID and assign/unassign ControllerInput
     }
 
     #endregion Events
@@ -148,79 +151,11 @@ public partial class MainNode : Node
         _homeShotVisualizer = GetNode<ShotVisualizer>("Home Shot Visualizer");
         _awayShotVisualizer = GetNode<ShotVisualizer>("Away Shot Visualizer");
 
-        int numOfContr = Input.GetConnectedJoypads().Count;
-        // make a player input for each device connected.
-        for (int i = 0; i < numOfContr; i++)
-        {
-            //TODO: make a state machine to handle disconnects and new controllers.
-            ControllerInput playerInput = InputScene.Instantiate<ControllerInput>();
-            playerInput.Name = $"ControllerInput{i}";
-            playerInput.DeviceId = i;
-
-            AddChild(playerInput);
-        }
-
         // subscribe to events
         GameEvents.Instance.GoalScored += On_GoalScored;
+        Input.JoyConnectionChanged += On_ControllerConnectionChanged;
 
-        // create and add the puck and players to the scene
-        Puck puck = PuckScene.Instantiate<Puck>();
-        _spawnedPuck = puck;
-
-        foreach (PlayerSpawnConfig config in BuildSpawnConfigs())
-        {
-            Hazmat player = PlayerScene.Instantiate<Hazmat>();
-            player.Name = $"Skater-{config.PlayerId}";
-            player.HomeTeam = config.HomeTeam;
-            player.PlayerId = config.PlayerId;
-            player.AttackingGoal = config.HomeTeam ? AwayNet : HomeNet;
-
-            if (numOfContr > 0 && config.HomeTeam)
-            {
-                player.InputDevice = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
-                _homeShotVisualizer.Controller = _homeShotVisualizer.Controller == null ? GetNode<ControllerInput>($"ControllerInput{config.DeviceId}") : null;
-                numOfContr -= 1;
-            }
-            else if (numOfContr > 0 && !config.HomeTeam)
-            {
-                player.InputDevice = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}");
-                _awayShotVisualizer.Controller = _awayShotVisualizer.Controller == null ? GetNode<ControllerInput>($"ControllerInput{config.DeviceId}") : null;
-                numOfContr -= 1;
-            }
-
-            AddChild(player);
-
-            player.GlobalPosition = config.SpawnPosition; // set after AddChild so it's not overwritten by scene defaults
-            player.GlobalRotation = new() { 
-                X = player.GlobalRotation.X, 
-                Y = config.HomeTeam ? -Mathf.Pi/2 : Mathf.Pi/2, 
-                Z = player.GlobalRotation.Z 
-            };
-
-            _players.Add(player);
-        }
-
-        // setup the teammates for each player.
-        foreach(Hazmat skater in _players)
-        {
-            skater.Teammates = _players.Where(s => s != skater && s.HomeTeam == skater.HomeTeam).ToList();
-        }
-
-        CameraManager.Instance.SetMode(
-            CameraMode.SplitScreen,
-            _players,
-            puck
-        );
-
-        AddChild(puck);
-
-        HomeGoalie.PuckToTrack = puck;
-        HomeGoalie.GoalToDefend = HomeNet;
-
-        AwayGoalie.PuckToTrack = puck;
-        AwayGoalie.GoalToDefend = AwayNet;
-        
-        puck.FaceoffLocations = GetNode<Node>("Arena/Faceoff Dots");
+        SpawnAndSetupGame();
         
         GameEvents.Instance.RaisePrepareFaceoff(FaceoffDot.CenterIce);
     }
@@ -237,6 +172,86 @@ public partial class MainNode : Node
     #endregion Overrides
 
     #region Private Methods
+
+    private void SpawnAndSetupGame()
+    {
+        // spawn and setup controller inputs
+        int numOfContr = Input.GetConnectedJoypads().Count;
+        for (int i = 0; i < numOfContr; i++)
+        {
+            //TODO: make a state machine to handle disconnects and new controllers.
+            ControllerInput playerInput = InputScene.Instantiate<ControllerInput>();
+            playerInput.Name = $"ControllerInput{i}";
+            playerInput.DeviceId = i;
+
+            AddChild(playerInput);
+        }
+
+        // create and add the puck and players to the scene
+        Puck puck = PuckScene.Instantiate<Puck>();
+        _spawnedPuck = puck;
+
+        // int SkaterCount = Input.GetConnectedJoypads().Count > 1 ? Input.GetConnectedJoypads().Count : 2;    // for now make sure there's two skaters
+        // SkaterCount = 10;
+        foreach (PlayerSpawnConfig config in BuildSpawnConfigs(MatchStatus.Instance.ConfirmedPlayers.Count, true))
+        {
+            Hazmat player = PlayerScene.Instantiate<Hazmat>();
+            player.Name = $"Skater-{config.PlayerId}";
+            player.HomeTeam = config.HomeTeam;
+            player.PlayerId = config.PlayerId;
+            player.AttackingGoal = config.HomeTeam ? AwayNet : HomeNet;
+            player.Assignment = config.Assignment;
+
+            ControllerInput node = config.DeviceId != -1 ? node = GetNode<ControllerInput>($"ControllerInput{config.DeviceId}") : null;
+
+            if (numOfContr > 0 && config.HomeTeam)
+            {
+                player.InputDevice = node;
+                _homeShotVisualizer.Controller = _homeShotVisualizer.Controller == null ? node : null;
+                numOfContr -= 1;
+            }
+            else if (numOfContr > 0 && !config.HomeTeam)
+            {
+                player.InputDevice = node;
+                _awayShotVisualizer.Controller = _awayShotVisualizer.Controller == null ? node : null;
+                numOfContr -= 1;
+            }
+
+            AddChild(player);
+
+            player.GlobalPosition = config.SpawnPosition; // set after AddChild so it's not overwritten by scene defaults
+            player.LookAt(GetNode<Node3D>("Arena/Faceoff Dots/Center Ice").GlobalPosition, useModelFront: true);
+            player.GlobalRotation = new() {
+                X = 0, 
+                Y = player.GlobalRotation.Y,
+                Z = player.GlobalRotation.Z
+            };
+
+            _players.Add(player);
+        }
+
+        // setup the teammates for each player.
+        foreach(Hazmat skater in _players)
+        {
+            skater.Teammates = _players.Where(s => s != skater && s.HomeTeam == skater.HomeTeam).ToList();
+        }
+
+        CameraManager.Instance.SetMode(
+            Input.GetConnectedJoypads().Count <= 1 ? CameraMode.FollowFixed : CameraMode.SplitScreen,
+            _players,
+            puck
+        );
+
+        AddChild(puck);
+
+        HomeGoalie.PuckToTrack = puck;
+        HomeGoalie.GoalToDefend = HomeNet;
+
+        AwayGoalie.PuckToTrack = puck;
+        AwayGoalie.GoalToDefend = AwayNet;
+        
+        puck.FaceoffLocations = GetNode<Node>("Arena/Faceoff Dots");
+    }
 
     /// <summary>
     /// When a goal is scored, increase the score, update the ui, freeze the shot visualizer, drop the puck again.
@@ -266,30 +281,54 @@ public partial class MainNode : Node
         GameEvents.Instance.RaisePrepareFaceoff(FaceoffDot.CenterIce);
     }
 
-    private List<PlayerSpawnConfig> BuildSpawnConfigs()
+    private List<PlayerSpawnConfig> BuildSpawnConfigs(int numToSpawn, bool pvp)
     {
         List<PlayerSpawnConfig> list = [];
-
-        PlayerSpawnConfig player1 = new()
+        
+        if (pvp)
         {
-            HomeTeam = true,
-            PlayerId = 0,
-            DeviceId = 0,
-            SpawnPosition = FaceoffLineup.LineupSkater(Positions.Center, GetNode<Node3D>("Arena/Faceoff Dots/Center Ice"), true),
-        };
+            for(int spawnCount = 0; spawnCount < MatchStatus.Instance.ConfirmedPlayers.Count; spawnCount++)
+            {
+                PlayerSpawnConfig skater = new()
+                {
+                    HomeTeam = MatchStatus.Instance.ConfirmedPlayers[spawnCount].HomeTeam,
+                    PlayerId = spawnCount,
+                    DeviceId = MatchStatus.Instance.ConfirmedPlayers[spawnCount].DeviceId,
+                    Assignment = MatchStatus.Instance.ConfirmedPlayers[spawnCount].Position,                    
+                    SpawnPosition = FaceoffLineup.LineupSkater(GetPlayerPosition(spawnCount), GetNode<Node3D>("Arena/Faceoff Dots/Center Ice"), MatchStatus.Instance.ConfirmedPlayers[spawnCount].HomeTeam)
+                };
 
-        PlayerSpawnConfig player2 = new()
+                list.Add(skater);
+            }
+        }
+        else
         {
-            HomeTeam = false,
-            PlayerId = 1,
-            DeviceId = 1,
-            SpawnPosition = FaceoffLineup.LineupSkater(Positions.Center, GetNode<Node3D>("Arena/Faceoff Dots/Center Ice"), false),
-        };
+            for(int spawnCount = 0; spawnCount < numToSpawn; spawnCount++)
+            {
+                PlayerSpawnConfig skater = new()
+                {
+                    HomeTeam = spawnCount % 2 == 0,
+                    PlayerId = spawnCount,
+                    DeviceId = Input.GetConnectedJoypads().Count > spawnCount ? spawnCount : -1,
+                    Assignment = GetPlayerPosition(spawnCount),
+                    SpawnPosition = FaceoffLineup.LineupSkater(GetPlayerPosition(spawnCount), GetNode<Node3D>("Arena/Faceoff Dots/Center Ice"), spawnCount % 2 == 0)
+                };
 
-        list.Add(player1);
-        list.Add(player2);
+                list.Add(skater);
+            }
+        }
 
         return list;
+
+        static Positions GetPlayerPosition(int playerID)
+        {
+            if (playerID % 2 != 0)
+            {
+                playerID -= 1;
+            }
+
+            return (Positions)(playerID / 2);
+        }
     }
 
     #endregion Private Methods

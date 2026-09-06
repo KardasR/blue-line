@@ -1,6 +1,8 @@
 using Godot;
 using System;
 
+using BlueLine.Skater;
+
 namespace BlueLine.Management;
 
 public partial class GameEvents : Node
@@ -12,6 +14,8 @@ public partial class GameEvents : Node
     public event Action<bool> GoalScored;
     public event Action<FaceoffDot> PrepareFaceoff;
     public event Action<FaceoffDot> PuckDropped;
+    public event Action<Hazmat> NewPuckCarrier;
+    public event Action<GameState> ChangeGameState;
 
     public override void _EnterTree()
     {
@@ -23,4 +27,6 @@ public partial class GameEvents : Node
     public void RaiseGoalScored(bool homeGoal) => GoalScored?.Invoke(homeGoal);
     public void RaisePrepareFaceoff(FaceoffDot dot) => PrepareFaceoff?.Invoke(dot);
     public void RaisePuckDropped(FaceoffDot dot) => PuckDropped?.Invoke(dot);
+    public void RaiseNewPuckCarrier(Hazmat carrier) => NewPuckCarrier?.Invoke(carrier);
+    public void RaiseChangeGameState(GameState state) => ChangeGameState?.Invoke(state);
 }

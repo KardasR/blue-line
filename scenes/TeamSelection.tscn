@@ -1,0 +1,86 @@
+[gd_scene format=3 uid="uid://c64u3fw0dpfm0"]
+
+[ext_resource type="Script" uid="uid://65fb7xc784xn" path="res://scripts/Management/TeamSelect.cs" id="1_7tj8u"]
+[ext_resource type="PackedScene" uid="uid://cwlib3meeiv58" path="res://scenes/Main.tscn" id="2_kv4g4"]
+
+[node name="TeamSelection" type="CanvasLayer" unique_id=544669810 node_paths=PackedStringArray("NoTeam", "HomeTeam", "AwayTeam", "StatusLabel")]
+script = ExtResource("1_7tj8u")
+MainScene = ExtResource("2_kv4g4")
+NoTeam = NodePath("Team Select Panel/Player List")
+HomeTeam = NodePath("Home Panel/Player List")
+AwayTeam = NodePath("Away Panel/Player List")
+StatusLabel = NodePath("Status Label")
+
+[node name="Status Label" type="Label" parent="." unique_id=1736322352]
+offset_left = 489.0
+offset_top = 95.0
+offset_right = 1473.0
+offset_bottom = 183.0
+theme_override_font_sizes/font_size = 64
+text = "Waiting For Players to Ready Up"
+
+[node name="Home Panel" type="Panel" parent="." unique_id=50457181]
+offset_left = 468.0
+offset_top = 313.0
+offset_right = 718.0
+offset_bottom = 655.0
+
+[node name="Team Label" type="Label" parent="Home Panel" unique_id=284523659]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 18.0
+offset_right = 143.0
+offset_bottom = 41.0
+text = "Home"
+
+[node name="Player List" type="ItemList" parent="Home Panel" unique_id=1987757679]
+layout_mode = 0
+offset_left = 31.0
+offset_top = 75.0
+offset_right = 222.0
+offset_bottom = 309.0
+theme_override_font_sizes/font_size = 24
+
+[node name="Away Panel" type="Panel" parent="." unique_id=593468215]
+offset_left = 1238.0
+offset_top = 307.0
+offset_right = 1488.0
+offset_bottom = 649.0
+
+[node name="Team Label" type="Label" parent="Away Panel" unique_id=1710340359]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 18.0
+offset_right = 143.0
+offset_bottom = 41.0
+text = "Away"
+
+[node name="Player List" type="ItemList" parent="Away Panel" unique_id=1969246041]
+layout_mode = 0
+offset_left = 31.0
+offset_top = 75.0
+offset_right = 222.0
+offset_bottom = 309.0
+theme_override_font_sizes/font_size = 24
+
+[node name="Team Select Panel" type="Panel" parent="." unique_id=1010058111]
+offset_left = 854.0
+offset_top = 311.0
+offset_right = 1104.0
+offset_bottom = 653.0
+
+[node name="Select Label" type="Label" parent="Team Select Panel" unique_id=1081458276]
+layout_mode = 0
+offset_left = 45.0
+offset_top = 21.0
+offset_right = 207.0
+offset_bottom = 44.0
+text = "Please Select A Team"
+
+[node name="Player List" type="ItemList" parent="Team Select Panel" unique_id=244001717]
+layout_mode = 0
+offset_left = 31.0
+offset_top = 75.0
+offset_right = 222.0
+offset_bottom = 309.0
+theme_override_font_sizes/font_size = 24

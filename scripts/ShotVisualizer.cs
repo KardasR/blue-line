@@ -1,6 +1,8 @@
 using Godot;
 
 using BlueLine.Management;
+using System.Threading.Tasks;
+using BlueLine.Skater;
 
 namespace BlueLine;
 
@@ -50,6 +52,7 @@ public partial class ShotVisualizer : RigidBody3D
         GameEvents.Instance.PuckSaved += ReactToSave;
         GameEvents.Instance.GoalScored += ReactToGoal;
         GameEvents.Instance.PrepareFaceoff += ReactToFaceoffPrep;
+        GameEvents.Instance.NewPuckCarrier += ReactToNewPuckCarrier;
     }
 
     public override void _Process(double delta)
@@ -63,6 +66,18 @@ public partial class ShotVisualizer : RigidBody3D
     #endregion Overrides
 
     #region Private Methods
+
+    private void ReactToNewPuckCarrier(Hazmat skater)
+    {
+        // TODO: I need to make sure the skater has a controller attached
+
+        if (Net.HomeNet != skater.HomeTeam)
+        {
+            _okayToMove = false;
+            //_input = skater.InputDevice;
+            _okayToMove = true;
+        }
+    }
 
     private void ReactToFaceoffPrep(FaceoffDot faceoffDot)
     {
@@ -84,6 +99,14 @@ public partial class ShotVisualizer : RigidBody3D
 
     private void ReactToSave()
     {
+        // lets wait a second to reset the visualizer
+        _ = WaitToReset(1);
+    }
+
+    private async Task WaitToReset(float seconds)
+    {
+        await ToSignal(GetTree().CreateTimer(seconds), SceneTreeTimer.SignalName.Timeout);
+
         ResetVisualizer();
     }
 

@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://bhw5mhyda3hsw"]
+
+[ext_resource type="Script" uid="uid://diyp4a7kgqeao" path="res://scripts/Menus/MainMenu.cs" id="1_yqorp"]
+[ext_resource type="PackedScene" uid="uid://c64u3fw0dpfm0" path="res://scenes/TeamSelection.tscn" id="2_0ykhv"]
+
+[node name="Main Menu" type="CanvasLayer" unique_id=542859401 node_paths=PackedStringArray("StartButton", "QuitButton")]
+script = ExtResource("1_yqorp")
+StartButton = NodePath("Play")
+QuitButton = NodePath("Quit")
+TeamSelectScene = ExtResource("2_0ykhv")
+
+[node name="Title" type="Label" parent="." unique_id=1424800592]
+offset_left = 459.0
+offset_top = 123.0
+offset_right = 1462.0
+offset_bottom = 472.0
+theme_override_font_sizes/font_size = 256
+text = "Blueline"
+
+[node name="Play" type="Button" parent="." unique_id=425565573]
+offset_left = 769.0
+offset_top = 638.0
+offset_right = 1143.0
+offset_bottom = 766.0
+theme_override_font_sizes/font_size = 64
+text = "[ PLAY ]"
+
+[node name="Quit" type="Button" parent="." unique_id=1355885807]
+offset_left = 769.0
+offset_top = 825.0
+offset_right = 1143.0
+offset_bottom = 953.0
+theme_override_font_sizes/font_size = 64
+text = "[ QUIT ]"

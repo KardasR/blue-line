@@ -38,6 +38,9 @@ public class FollowFixedCameraRig : ICameraRig
         _rig.Target = players[0];   // default to the first created skater being the main player.
 
         _camera.Current = true;
+
+        if (!players[0].HomeTeam)
+            _rig.RotateY(Mathf.Pi);
     }
 
     public Camera3D GetCameraForPlayer(int playerIndex) => _camera;
