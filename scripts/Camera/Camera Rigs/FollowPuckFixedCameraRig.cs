@@ -1,14 +1,12 @@
-using BlueLine.Management;
 using BlueLine.Skater;
 using Godot;
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BlueLine.VideoFeed;
 
-public class FollowFixedCameraRig : ICameraRig
+public class FollowPuckFixedCameraRig : ICameraRig
 {
     private FollowCamera _rig;
     private Camera3D _camera;
@@ -16,13 +14,13 @@ public class FollowFixedCameraRig : ICameraRig
     private PackedScene _followCameraScene;
     private Node _parent;
 
-    public FollowFixedCameraRig(PackedScene cameraScene, Node parent)
+    public FollowPuckFixedCameraRig(PackedScene cameraScene, Node parent)
     {
         _followCameraScene = cameraScene;
         _parent = parent;
     }
 
-    public void Setup(IReadOnlyList<Hazmat> players, Node3D _)
+    public void Setup(IReadOnlyList<Hazmat> _, Node3D puck)
     {
         if (_followCameraScene == null)
         {
@@ -37,12 +35,9 @@ public class FollowFixedCameraRig : ICameraRig
         _parent.AddChild(_rig);
 
         _camera = _rig.GetNode<Camera3D>("Camera Pos/Camera");
-        _rig.Target = players.First(p => p.InputDevice?.DeviceId == MatchStatus.Instance.ConfirmedPlayers[0].DeviceId);
+        _rig.Target = puck;
 
         _camera.Current = true;
-
-        if (!players[0].HomeTeam)
-            _rig.RotateY(Mathf.Pi);
     }
 
     public Camera3D GetCameraForPlayer(int playerIndex) => _camera;

@@ -34,7 +34,7 @@ public partial class ShotVisualizer : RigidBody3D
         set 
         {
             // make sure we only set this once
-            if (_input == null)
+            if (_input == null && value != null)
             {
                 _input = value;
                 _okayToMove = true;

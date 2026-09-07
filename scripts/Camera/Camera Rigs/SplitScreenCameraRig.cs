@@ -1,8 +1,10 @@
 using BlueLine.Skater;
+using BlueLine.Management;
 using Godot;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BlueLine.VideoFeed;
 
@@ -10,9 +12,10 @@ public class SplitScreenCameraRig : ICameraRig
 {
     private PackedScene _followCameraScene;
     private Control _uiParent;
-    private List<SubViewportContainer> _containers = new();
-    private List<FollowCamera> _rigs = new();
-    private List<Camera3D> _cameras = new();
+    private List<SubViewportContainer> _containers = [];
+    private List<FollowCamera> _rigs = [];
+    private List<Camera3D> _cameras = [];
+    private IReadOnlyList<Hazmat> _players = [];
 
     public SplitScreenCameraRig(PackedScene scene, Control uiParent)
     {
@@ -20,7 +23,7 @@ public class SplitScreenCameraRig : ICameraRig
         _uiParent = uiParent;
     }
 
-    public void Setup(IReadOnlyList<Hazmat> players, Node3D puck)
+    public void Setup(IReadOnlyList<Hazmat> players, Node3D _)
     {
         if (_followCameraScene == null)
         {
@@ -31,7 +34,8 @@ public class SplitScreenCameraRig : ICameraRig
             throw new InvalidOperationException("No UI parent was given. Cannot setup split screen cameras.");
         }
 
-        //for (int i = 0; i < players.Count; i++)
+        _players = players;
+
         for (int i = 0; i < 2; i++)
         {
             // left/right
@@ -62,12 +66,22 @@ public class SplitScreenCameraRig : ICameraRig
             _uiParent.AddChild(container);
 
             FollowCamera rig = _followCameraScene.Instantiate<FollowCamera>();
-            rig.Target = players[i];
-            subViewport.AddChild(rig);
 
-            if (!players[i].HomeTeam)
-                rig.RotateY(Mathf.Pi);
+            try
+            {
+                Hazmat h = _players.First(p => p.InputDevice?.DeviceId == MatchStatus.Instance.ConfirmedPlayers[i].DeviceId);
+                rig.Target = h;
 
+                subViewport.AddChild(rig);
+
+                if (!h.HomeTeam)
+                    rig.RotateY(Mathf.Pi);
+            }
+            catch
+            {
+                throw;
+            }
+            
             Camera3D camera = rig.GetNode<Camera3D>("Camera Pos/Camera");
             camera.Current = true;
 
@@ -77,7 +91,7 @@ public class SplitScreenCameraRig : ICameraRig
         }
     }
 
-    public Camera3D GetCameraForPlayer(int playerIndex) => _cameras[playerIndex];
+    public Camera3D GetCameraForPlayer(int playerIndex) => _cameras[_players.First(p => p.PlayerId == playerIndex).InputDevice.DeviceId];
     public void Tick(double delta) { }
 
     public void Teardown()

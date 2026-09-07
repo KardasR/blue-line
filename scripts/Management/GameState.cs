@@ -20,7 +20,6 @@ public struct PlayerSpawnConfig
     public bool HomeTeam;
     public Positions Assignment;
     public Vector3 SpawnPosition;
-    public Vector3 SpawnRotation;
 }
 
 public struct PlayerLobbyEntry

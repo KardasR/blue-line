@@ -10,6 +10,7 @@ public partial class Net : MeshInstance3D
     #region Members
 
     private float _puckX;
+    private bool _goalScored;
 
     #endregion Members
 
@@ -53,11 +54,15 @@ public partial class Net : MeshInstance3D
 
     public void On_Goal_BodyEntered(Node3D puck)
     {
+        if (_goalScored) return;
+
         _puckX = puck.GlobalPosition.X;
     }
 
     public void On_Goal_BodyExited(Node3D puck)
     {
+        if (_goalScored) return;
+
         if ((HomeNet &&
                 puck.GlobalPosition.X > _puckX) ||
             (!HomeNet &&
@@ -67,10 +72,25 @@ public partial class Net : MeshInstance3D
             GameEvents.Instance.RaiseGoalScored(!HomeNet);
         }
 
+        _goalScored = true;
         _puckX = 0;
     }
 
+    public void On_Faceoff(FaceoffDot _)
+    {
+        _goalScored = false;
+    }
+
     #endregion Events
+
+    #region Overrides
+
+    public override void _Ready()
+    {
+        GameEvents.Instance.PrepareFaceoff += On_Faceoff;
+    }
+
+    #endregion Overrrides
 
     #region Public Methods
 

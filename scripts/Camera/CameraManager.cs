@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace BlueLine.VideoFeed;
 
-public enum CameraMode { SplitScreen, FollowFixed }
+public enum CameraMode { SplitScreen, FollowFixed, PuckFollowFixed }
 
 public partial class CameraManager : Node
 {
@@ -40,6 +40,7 @@ public partial class CameraManager : Node
         {
             CameraMode.SplitScreen   => new SplitScreenCameraRig(FollowCameraScene, SplitScreenControl),
             CameraMode.FollowFixed   => new FollowFixedCameraRig(FollowCameraScene, this),
+            CameraMode.PuckFollowFixed => new FollowPuckFixedCameraRig(FollowCameraScene, this),
             _ => throw new NotSupportedException(nameof(mode))
         };
         _activeRig.Setup(players, puck);

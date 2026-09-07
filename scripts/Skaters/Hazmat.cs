@@ -155,6 +155,12 @@ public partial class Hazmat : CharacterBody3D
         GrabPuck(puck);
     }
 
+    public void On_PuckCarrier_Changed(Hazmat skater)
+    {
+        if (skater.PlayerId != PlayerId)
+            _heldPuck = null;
+    }
+
     #endregion Events
 
     #region Overrides
@@ -178,6 +184,8 @@ public partial class Hazmat : CharacterBody3D
         _pokeChecker = GetNode<PokeCheck>("Stick/Pivot Point");
         _bodyCheckZone = GetNode<ShapeCast3D>("Body Check Zone");
         _modelVisual = GetNode<Node3D>("Model");
+
+        GameEvents.Instance.NewPuckCarrier += On_PuckCarrier_Changed;
     }
     /// <summary>
     /// Checks if an input action has been pressed and responds accordingly
@@ -488,7 +496,7 @@ public partial class Hazmat : CharacterBody3D
 
         // future direction of player
         Vector3 direction = Vector3.Zero; 
-        if (input != Vector2.Zero) 
+        if (input != Vector2.Zero)  // TODO: Add deadzone?
         {
             direction = GetCameraRelativeDirection(input);
 
@@ -499,6 +507,7 @@ public partial class Hazmat : CharacterBody3D
                 facingDirection.Z 
             );
 
+            // TODO: Is there a way to switch to physics turning like velocity?
             Rotation = new Vector3(
                 Rotation.X,
                 Mathf.LerpAngle(

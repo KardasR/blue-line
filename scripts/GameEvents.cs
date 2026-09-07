@@ -2,6 +2,7 @@ using Godot;
 using System;
 
 using BlueLine.Skater;
+using System.Text.RegularExpressions;
 
 namespace BlueLine.Management;
 
@@ -24,9 +25,21 @@ public partial class GameEvents : Node
 
     public void RaiseShotFired(Vector3 direction, float force) => ShotFired?.Invoke(direction, force);
     public void RaisePuckSaved() => PuckSaved?.Invoke();
-    public void RaiseGoalScored(bool homeGoal) => GoalScored?.Invoke(homeGoal);
-    public void RaisePrepareFaceoff(FaceoffDot dot) => PrepareFaceoff?.Invoke(dot);
-    public void RaisePuckDropped(FaceoffDot dot) => PuckDropped?.Invoke(dot);
+    public void RaiseGoalScored(bool homeGoal)
+    {
+        MatchStatus.Instance.State = GameState.Goal;
+        GoalScored?.Invoke(homeGoal);
+    }
+    public void RaisePrepareFaceoff(FaceoffDot dot)
+    {
+        MatchStatus.Instance.State = GameState.Faceoff;
+        PrepareFaceoff?.Invoke(dot);
+    }
+    public void RaisePuckDropped(FaceoffDot dot)
+    {
+        MatchStatus.Instance.State = GameState.Playing;
+        PuckDropped?.Invoke(dot);
+    }
     public void RaiseNewPuckCarrier(Hazmat carrier) => NewPuckCarrier?.Invoke(carrier);
     public void RaiseChangeGameState(GameState state) => ChangeGameState?.Invoke(state);
 }
