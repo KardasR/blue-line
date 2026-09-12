@@ -34,7 +34,7 @@ public partial class ShotVisualizer : RigidBody3D
         set 
         {
             // make sure we only set this once
-            if (_input == null && value != null)
+            if (value != null)
             {
                 _input = value;
                 _okayToMove = true;
@@ -69,13 +69,10 @@ public partial class ShotVisualizer : RigidBody3D
 
     private void ReactToNewPuckCarrier(Hazmat skater)
     {
-        // TODO: I need to make sure the skater has a controller attached
-
         if (Net.HomeNet != skater.HomeTeam)
         {
-            _okayToMove = false;
+            //_okayToMove = false;
             //_input = skater.InputDevice;
-            _okayToMove = true;
         }
     }
 
@@ -84,7 +81,7 @@ public partial class ShotVisualizer : RigidBody3D
         if (Controller != null)
             ResetVisualizer();
         else
-            HideVisualizer();
+            Visible = false;
     }
 
     private void ReactToShot(Vector3 direction, float force)
@@ -100,7 +97,8 @@ public partial class ShotVisualizer : RigidBody3D
     private void ReactToSave()
     {
         // lets wait a second to reset the visualizer
-        _ = WaitToReset(1);
+        if (Controller != null)
+            _ = WaitToReset(1);
     }
 
     private async Task WaitToReset(float seconds)
@@ -114,11 +112,6 @@ public partial class ShotVisualizer : RigidBody3D
     {
         if (Controller != null)
             _okayToMove = true;
-    }
-
-    private void HideVisualizer()
-    {
-        if (Visible) Visible = false;
     }
 
     #endregion Private Methods

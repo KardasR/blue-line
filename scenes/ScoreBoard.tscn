@@ -1,68 +1,101 @@
 [gd_scene format=3 uid="uid://c03h5rhgbttpf"]
 
+[ext_resource type="Script" uid="uid://bslgp0ljty4me" path="res://scripts/Management/Scoreboard.cs" id="1_dp7gr"]
 [ext_resource type="FontFile" uid="uid://b6xdhle0vwdgb" path="res://resources/fonts/DS-DIGII.TTF" id="1_r8h18"]
 
 [sub_resource type="FontVariation" id="FontVariation_dp7gr"]
 base_font = ExtResource("1_r8h18")
 
 [node name="ScoreBoard" type="CanvasLayer" unique_id=1023751879]
+script = ExtResource("1_dp7gr")
 
 [node name="Home Abbrev" type="Label" parent="." unique_id=1467878925]
 z_index = 1
-offset_left = 691.0
-offset_right = 840.0
-offset_bottom = 75.0
+offset_left = 562.0
+offset_top = 5.0
+offset_right = 711.0
+offset_bottom = 80.0
 theme_override_fonts/font = SubResource("FontVariation_dp7gr")
 theme_override_font_sizes/font_size = 64
 text = "DET -"
 
 [node name="Home Score" type="Label" parent="." unique_id=1060103624]
 z_index = 1
-offset_left = 836.0
-offset_right = 937.0
-offset_bottom = 75.0
+offset_left = 707.0
+offset_top = 5.0
+offset_right = 808.0
+offset_bottom = 80.0
 theme_override_fonts/font = SubResource("FontVariation_dp7gr")
 theme_override_font_sizes/font_size = 64
 text = "00"
 
 [node name="Away Abbrev" type="Label" parent="." unique_id=282561384]
 z_index = 1
-offset_left = 993.0
-offset_right = 1142.0
-offset_bottom = 75.0
+offset_left = 1147.0
+offset_top = 5.0
+offset_right = 1296.0
+offset_bottom = 80.0
 theme_override_fonts/font = SubResource("FontVariation_dp7gr")
 theme_override_font_sizes/font_size = 64
 text = "AWY -"
 
 [node name="Away Score" type="Label" parent="." unique_id=477242865]
 z_index = 1
-offset_left = 1138.0
-offset_right = 1239.0
-offset_bottom = 75.0
+offset_left = 1292.0
+offset_top = 5.0
+offset_right = 1393.0
+offset_bottom = 80.0
 theme_override_fonts/font = SubResource("FontVariation_dp7gr")
 theme_override_font_sizes/font_size = 64
 text = "00"
 
-[node name="Dash" type="Label" parent="." unique_id=468225480]
+[node name="Away Dash" type="Label" parent="." unique_id=468225480]
 z_index = 1
-offset_left = 938.0
-offset_top = -5.0
-offset_right = 968.0
-offset_bottom = 70.0
+offset_left = 1092.0
+offset_right = 1122.0
+offset_bottom = 75.0
 theme_override_fonts/font = SubResource("FontVariation_dp7gr")
 theme_override_font_sizes/font_size = 64
 text = "|"
 
 [node name="Away Color" type="ColorRect" parent="." unique_id=1013353728]
-offset_left = 947.0
-offset_top = 2.0
-offset_right = 1230.0
-offset_bottom = 64.0
-color = Color(0.21176471, 0.21176471, 0.21176471, 0.79607844)
+offset_left = 1101.0
+offset_top = 7.0
+offset_right = 1384.0
+offset_bottom = 69.0
+color = Color(0.4601314, 0.0009814823, 0.57863134, 0.79607844)
 
 [node name="Home Color" type="ColorRect" parent="." unique_id=1554795667]
-offset_left = 673.0
-offset_top = 2.0
-offset_right = 947.0
-offset_bottom = 64.0
+offset_left = 536.0
+offset_top = 7.0
+offset_right = 808.0
+offset_bottom = 69.0
 color = Color(0.78431374, 0.0627451, 0.18039216, 0.79607844)
+
+[node name="Clock Color" type="ColorRect" parent="." unique_id=1637825458]
+offset_left = 808.0
+offset_top = 7.0
+offset_right = 1101.0
+offset_bottom = 69.0
+color = Color(0.21176471, 0.21176471, 0.21176471, 0.9019608)
+
+[node name="Home Dash" type="Label" parent="." unique_id=1469691925]
+z_index = 1
+offset_left = 800.0
+offset_right = 830.0
+offset_bottom = 75.0
+theme_override_fonts/font = SubResource("FontVariation_dp7gr")
+theme_override_font_sizes/font_size = 64
+text = "|"
+
+[node name="Time" type="Label" parent="." unique_id=342092763]
+z_index = 1
+offset_left = 884.0
+offset_top = 5.0
+offset_right = 1033.0
+offset_bottom = 80.0
+theme_override_fonts/font = SubResource("FontVariation_dp7gr")
+theme_override_font_sizes/font_size = 64
+text = "00:00"
+
+[node name="Timer" type="Timer" parent="." unique_id=1425909926]

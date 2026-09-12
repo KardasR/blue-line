@@ -16,15 +16,7 @@ public partial class MainNode : Node
 {
     #region Members
 
-    private int _homeScore = 0;
-
-    private int _awayScore = 0;
-
     private Puck _spawnedPuck;
-
-    private Label _homeScoreLbl;
-
-    private Label _awayScoreLbl;
 
     private ShotVisualizer _homeShotVisualizer;
 
@@ -98,9 +90,9 @@ public partial class MainNode : Node
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    public void On_GoalScored(bool homeGoal)
+    public void On_GoalScored(bool _)
     {
-        GoalScored(homeGoal);
+        Task.Run(() => AfterGoalTheatrics());
     }
 
 
@@ -146,8 +138,6 @@ public partial class MainNode : Node
         }
 
         // setup refs
-        _homeScoreLbl = GetNode<Label>("UI/Score Board/Home Score");
-        _awayScoreLbl = GetNode<Label>("UI/Score Board/Away Score");
         _homeShotVisualizer = GetNode<ShotVisualizer>("Home Shot Visualizer");
         _awayShotVisualizer = GetNode<ShotVisualizer>("Away Shot Visualizer");
 
@@ -168,7 +158,6 @@ public partial class MainNode : Node
             GameEvents.Instance.RaisePrepareFaceoff(FaceoffDot.CenterIce);
         }
     }
-
 
     #endregion Overrides
 
@@ -247,32 +236,13 @@ public partial class MainNode : Node
 
         HomeGoalie.PuckToTrack = puck;
         HomeGoalie.GoalToDefend = HomeNet;
+        HomeNet.PuckToTrack = puck;
 
         AwayGoalie.PuckToTrack = puck;
         AwayGoalie.GoalToDefend = AwayNet;
+        AwayNet.PuckToTrack = puck;
         
         puck.FaceoffLocations = GetNode<Node>("Arena/Faceoff Dots");
-    }
-
-    /// <summary>
-    /// When a goal is scored, increase the score, update the ui, freeze the shot visualizer, drop the puck again.
-    /// </summary>
-    /// <param name="homeGoal"></param>
-    /// <returns></returns>
-    private void GoalScored(bool homeGoal)
-    {
-        if (homeGoal)
-        {
-            _homeScore += 1;
-            _homeScoreLbl.Text = $"{_homeScore:00}";
-        }
-        else
-        {
-            _awayScore += 1;
-            _awayScoreLbl.Text = $"{_awayScore:00}";
-        }
-
-        Task.Run(() => AfterGoalTheatrics());
     }
 
     private async Task AfterGoalTheatrics()
@@ -287,7 +257,6 @@ public partial class MainNode : Node
         List<PlayerSpawnConfig> list = [];
 
         // TODO: 1v1 will only spawn centers. This will cause issues if a user doesn't select the center position
-        
         for(int spawnCount = 0; spawnCount < numToSpawn; spawnCount++)
         {
             PlayerSpawnConfig skater = new()

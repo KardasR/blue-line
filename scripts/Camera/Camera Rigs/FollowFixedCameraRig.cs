@@ -1,5 +1,6 @@
 using BlueLine.Management;
 using BlueLine.Skater;
+
 using Godot;
 
 using System;
@@ -41,7 +42,7 @@ public class FollowFixedCameraRig : ICameraRig
 
         _camera.Current = true;
 
-        if (!players[0].HomeTeam)
+        if (!players.First(p => p.InputDevice?.DeviceId == MatchStatus.Instance.ConfirmedPlayers[0].DeviceId).HomeTeam)
             _rig.RotateY(Mathf.Pi);
     }
 

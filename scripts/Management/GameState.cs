@@ -10,7 +10,8 @@ public enum GameState
     Playing,
     Goal,
     GameOver,
-    Paused
+    Paused,
+    EndOfPeriod
 }
 
 public struct PlayerSpawnConfig

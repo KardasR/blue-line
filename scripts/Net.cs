@@ -2,6 +2,7 @@ using System;
 using Godot;
 
 using BlueLine.Management;
+using BlueLine.FrozenRubber;
 
 namespace BlueLine;
 
@@ -9,7 +10,8 @@ public partial class Net : MeshInstance3D
 {
     #region Members
 
-    private float _puckX;
+    private Vector3 _prevPuckPosition;
+    private bool _hasPrevPosition;
     private bool _goalScored;
 
     #endregion Members
@@ -48,33 +50,15 @@ public partial class Net : MeshInstance3D
     [Export]
     public bool HomeNet { get; set; }
 
+    /// <summary>
+    /// The puck that the net will try to detect goals with.
+    /// </summary>
+    [Export]
+    public Puck PuckToTrack { get; set; }
+
     #endregion Properties
 
     #region Events
-
-    public void On_Goal_BodyEntered(Node3D puck)
-    {
-        if (_goalScored) return;
-
-        _puckX = puck.GlobalPosition.X;
-    }
-
-    public void On_Goal_BodyExited(Node3D puck)
-    {
-        if (_goalScored) return;
-
-        if ((HomeNet &&
-                puck.GlobalPosition.X > _puckX) ||
-            (!HomeNet &&
-                puck.GlobalPosition.X < _puckX))
-        {
-            // a goal has been scored.
-            GameEvents.Instance.RaiseGoalScored(!HomeNet);
-        }
-
-        _goalScored = true;
-        _puckX = 0;
-    }
 
     public void On_Faceoff(FaceoffDot _)
     {
@@ -89,6 +73,31 @@ public partial class Net : MeshInstance3D
     {
         GameEvents.Instance.PrepareFaceoff += On_Faceoff;
     }
+
+    public override void _ExitTree()
+    {
+        GameEvents.Instance.PrepareFaceoff -= On_Faceoff;
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        if (PuckToTrack == null || _goalScored)
+        {
+            if (PuckToTrack != null) 
+                _prevPuckPosition = PuckToTrack.GlobalPosition;
+                
+            return;
+        }
+
+        Vector3 current = PuckToTrack.GlobalPosition;
+
+        if (_hasPrevPosition)
+            CheckCrossedLine(_prevPuckPosition, current);
+
+        _prevPuckPosition = current;
+        _hasPrevPosition = true;
+    }
+
 
     #endregion Overrrides
 
@@ -148,4 +157,34 @@ public partial class Net : MeshInstance3D
     }
 
     #endregion Public Methods
+
+    #region Private Methods
+
+    private void CheckCrossedLine(Vector3 previous, Vector3 current)
+    {
+        float lineX = GlobalPosition.X;
+
+        bool wasNotIn = HomeNet ? previous.X <= lineX : previous.X >= lineX;
+        bool isNowIn  = HomeNet ? current.X  >  lineX : current.X  <  lineX;
+
+        if (!(wasNotIn && isNowIn)) return;
+
+        float denom = current.X - previous.X;
+        float t = Mathf.IsZeroApprox(denom) ? 0f : Mathf.Clamp((lineX - previous.X) / denom, 0f, 1f);
+        Vector3 crossingPoint = previous.Lerp(current, t);
+
+        if (IsWithinGoalBounds(crossingPoint))
+        {
+            _goalScored = true;
+            GameEvents.Instance.RaiseGoalScored(!HomeNet);
+        }
+    }
+
+    private bool IsWithinGoalBounds(Vector3 worldPoint)
+    {
+        Vector3 local = AimTarget.ToLocal(worldPoint);
+        return Mathf.Abs(local.X) <= Width / 2f && Mathf.Abs(local.Z) <= Height / 2f;
+    }
+
+    #endregion Private Methods
 }

@@ -13,7 +13,8 @@ public partial class MainMenu : CanvasLayer
     {
         StartButton.Pressed += OnStartPressed;
         QuitButton.Pressed += OnQuitPressed;
-        StartButton.GrabFocus(); // see note below
+        
+        StartButton.GrabFocus();
         MatchStatus.Instance.State = GameState.MainMenu;
     }
 

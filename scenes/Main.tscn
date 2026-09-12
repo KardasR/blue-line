@@ -129,11 +129,6 @@ collision_mask = 4
 [node name="CollisionShape3D" parent="Arena/Joe Louis Arena/Protective Net/StaticBody3D" parent_id_path=PackedInt32Array(1471467799, 320561198) index="0" unique_id=6529888]
 disabled = true
 
-[connection signal="body_entered" from="Arena/Joe Louis Arena/Goal A/Goal A Target" to="Arena/Joe Louis Arena/Goal A" method="On_Goal_BodyEntered"]
-[connection signal="body_exited" from="Arena/Joe Louis Arena/Goal A/Goal A Target" to="Arena/Joe Louis Arena/Goal A" method="On_Goal_BodyExited"]
-[connection signal="body_entered" from="Arena/Joe Louis Arena/Goal B/Goal B Target" to="Arena/Joe Louis Arena/Goal B" method="On_Goal_BodyEntered"]
-[connection signal="body_exited" from="Arena/Joe Louis Arena/Goal B/Goal B Target" to="Arena/Joe Louis Arena/Goal B" method="On_Goal_BodyExited"]
-
 [editable path="UI/Score Board"]
 [editable path="Home Shot Visualizer"]
 [editable path="Away Shot Visualizer"]

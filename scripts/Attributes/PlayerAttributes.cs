@@ -6,7 +6,7 @@ namespace BlueLine;
 public partial class PlayerAttributes : Resource
 {
     #region Skating
-
+    [ExportGroup("Skating")]
     [Export]
     public float SkatingSpeed { get; set; } = 20.0f;
 
@@ -31,7 +31,7 @@ public partial class PlayerAttributes : Resource
     #endregion Skating
 
     #region Shooting
-
+    [ExportGroup("Shooting")]
     /// <summary>
     /// How hard the player shoots.
     /// </summary>
@@ -53,7 +53,7 @@ public partial class PlayerAttributes : Resource
     #endregion Shooting
 
     #region Stick Handling
-
+    [ExportGroup("Stick Handling")]
     /// <summary>
     /// How far away from the center point the player dangles the puck.
     /// </summary>
@@ -75,7 +75,7 @@ public partial class PlayerAttributes : Resource
     #endregion Stick Handling
 
     #region Goalie
-
+    [ExportGroup("Goalie")]
     /// <summary>
     /// How close the goalie tries to get on the intersection of the puck and goal.
     /// </summary>

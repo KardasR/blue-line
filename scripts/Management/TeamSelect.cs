@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Godot;
 
 namespace BlueLine.Management;
@@ -16,7 +17,7 @@ public partial class TeamSelect : CanvasLayer
     #region Enums
 
     public enum SelectedTeam { Home, Unassigned, Away }
-    public enum MenuDirection { Left, Right }
+    private enum MenuDirection { Left, Right }
 
     #endregion Enums
 

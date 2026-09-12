@@ -2,7 +2,6 @@ using Godot;
 using System;
 
 using BlueLine.Skater;
-using System.Text.RegularExpressions;
 
 namespace BlueLine.Management;
 
@@ -37,8 +36,8 @@ public partial class GameEvents : Node
     }
     public void RaisePuckDropped(FaceoffDot dot)
     {
-        MatchStatus.Instance.State = GameState.Playing;
         PuckDropped?.Invoke(dot);
+        MatchStatus.Instance.State = GameState.Playing;
     }
     public void RaiseNewPuckCarrier(Hazmat carrier) => NewPuckCarrier?.Invoke(carrier);
     public void RaiseChangeGameState(GameState state) => ChangeGameState?.Invoke(state);

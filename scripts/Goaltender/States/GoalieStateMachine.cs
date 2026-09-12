@@ -1,21 +1,20 @@
-namespace BlueLine.Goaltender
+namespace BlueLine.Goaltender;
+
+public class GoalieStateMachine
 {
-    public class GoalieStateMachine
+    private GoalieState _currentState;
+
+    public void ChangeState(GoalieState newState)
     {
-        private GoalieState _currentState;
+        _currentState?.Exit();
 
-        public void ChangeState(GoalieState newState)
-        {
-            _currentState?.Exit();
+        _currentState = newState;
 
-            _currentState = newState;
+        _currentState.Enter();
+    }
 
-            _currentState.Enter();
-        }
-
-        public void PhysicsUpdate(double delta)
-        {
-            _currentState?.PhysicsUpdate(delta);
-        }
+    public void PhysicsUpdate(double delta)
+    {
+        _currentState?.PhysicsUpdate(delta);
     }
 }

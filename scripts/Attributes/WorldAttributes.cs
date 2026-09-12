@@ -5,6 +5,7 @@ namespace BlueLine;
 [GlobalClass] // Makes the resource discoverable in the Godot Editor
 public partial class WorldAttributes : Resource
 {
+    
     /// <summary> 
     /// The downward acceleration when in the air, in meters per second squared.
     /// </summary> 
