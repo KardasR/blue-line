@@ -13,11 +13,6 @@ public partial class Puck : RigidBody3D
     #region Properties
 
     /// <summary>
-    /// A node that contains a collection of node3d's that represent different faceoff dots.
-    /// </summary>
-    public Node FaceoffLocations { get; set; }
-
-    /// <summary>
     /// 
     /// </summary>
     public PuckStates State { get; set; }
@@ -194,8 +189,6 @@ public partial class Puck : RigidBody3D
         State = PuckStates.Pass;
 
         LinearVelocity = direction * force;
-
-        //GameEvents.Instance.RaisePassMade(direction, force);
     }
 
     /// <summary>
@@ -205,10 +198,6 @@ public partial class Puck : RigidBody3D
     /// <exception cref="InvalidOperationException">You must give a node object that is a collection of faceoff dots (area3d's)</exception>
     private void DropThePuck(FaceoffDot faceoffDot)
     {
-        if (FaceoffLocations == null)
-        {
-            throw new InvalidOperationException("No faceoff location node was given. Cannot spawn puck.");
-        }
         async Task MakeThemWait(FaceoffDot faceoffDot)
         {
             await ToSignal(GetTree().CreateTimer(2), SceneTreeTimer.SignalName.Timeout);
@@ -218,51 +207,11 @@ public partial class Puck : RigidBody3D
             GameEvents.Instance.RaisePuckDropped(faceoffDot);
         }
 
-        Vector3 faceoffLocation = new();
-        switch(faceoffDot)
-        {
-            case FaceoffDot.CenterIce:
-                faceoffLocation = FaceoffLocations.GetNode<Node3D>("Center Ice").GlobalPosition;
-                break;
-            case FaceoffDot.HomeCenter:
-                faceoffLocation = FaceoffLocations.GetNode<Node3D>("Home Center").GlobalPosition;
-                break;
-            case FaceoffDot.HomePenInzone:
-                faceoffLocation = FaceoffLocations.GetNode<Node3D>("Home Pen Inzone").GlobalPosition;
-                break;
-            case FaceoffDot.HomeBenchInzone:
-                faceoffLocation = FaceoffLocations.GetNode<Node3D>("Home Bench Inzone").GlobalPosition;
-                break;
-            case FaceoffDot.HomePenNeutral:
-                faceoffLocation = FaceoffLocations.GetNode<Node3D>("Home Pen Neutral").GlobalPosition;
-                break;
-            case FaceoffDot.HomeBenchNeutral:
-                faceoffLocation = FaceoffLocations.GetNode<Node3D>("Home Bench Neutral").GlobalPosition;
-                break;
-            case FaceoffDot.AwayCenter:
-                faceoffLocation = FaceoffLocations.GetNode<Node3D>("Away Center").GlobalPosition;
-                break;
-            case FaceoffDot.AwayPenInzone:
-                faceoffLocation = FaceoffLocations.GetNode<Node3D>("Away Pen Inzone").GlobalPosition;
-                break;
-            case FaceoffDot.AwayBenchInzone:
-                faceoffLocation = FaceoffLocations.GetNode<Node3D>("Away Bench Inzone").GlobalPosition;
-                break;
-            case FaceoffDot.AwayPenNeutral:
-                faceoffLocation = FaceoffLocations.GetNode<Node3D>("Away Pen Neutral").GlobalPosition;
-                break;
-            case FaceoffDot.AwayBenchNeutral:
-                faceoffLocation = FaceoffLocations.GetNode<Node3D>("Away Bench Neutral").GlobalPosition;
-                break;
-            default:
-                throw new NotSupportedException($"Faceoff Location: {faceoffDot} is not setup properly. Cannot drop puck");
-        }
-
         // Reset anything from prior use
         ResetPuck();
         Freeze = true;
 
-        GlobalPosition = faceoffLocation;
+        GlobalPosition = FaceoffLineup.Instance.FaceoffLocations[faceoffDot].GlobalPosition;
         
         Task.Run(() => MakeThemWait(faceoffDot));
     }

@@ -167,7 +167,8 @@ public partial class Net : MeshInstance3D
         bool wasNotIn = HomeNet ? previous.X <= lineX : previous.X >= lineX;
         bool isNowIn  = HomeNet ? current.X  >  lineX : current.X  <  lineX;
 
-        if (!(wasNotIn && isNowIn)) return;
+        if (!(wasNotIn && isNowIn)) 
+            return;
 
         float denom = current.X - previous.X;
         float t = Mathf.IsZeroApprox(denom) ? 0f : Mathf.Clamp((lineX - previous.X) / denom, 0f, 1f);

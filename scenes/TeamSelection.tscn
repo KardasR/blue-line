@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c64u3fw0dpfm0"]
 
-[ext_resource type="Script" uid="uid://65fb7xc784xn" path="res://scripts/Management/TeamSelect.cs" id="1_7tj8u"]
+[ext_resource type="Script" uid="uid://dl8652kbe5akm" path="res://scripts/Menus/TeamSelect.cs" id="1_7tj8u"]
 [ext_resource type="PackedScene" uid="uid://cwlib3meeiv58" path="res://scenes/Main.tscn" id="2_kv4g4"]
 
 [node name="TeamSelection" type="CanvasLayer" unique_id=544669810 node_paths=PackedStringArray("NoTeam", "HomeTeam", "AwayTeam", "StatusLabel")]

@@ -1,13 +1,18 @@
 using BlueLine.Management;
 using Godot;
 
-namespace BlueLine;
+namespace BlueLine.Menus;
 
 public partial class MainMenu : CanvasLayer
 {
-    [Export] public Button StartButton;
-    [Export] public Button QuitButton;
-    [Export] public PackedScene TeamSelectScene;
+    [Export]
+    public Button StartButton;
+
+    [Export]
+    public Button QuitButton;
+
+    [Export]
+    public PackedScene TeamSelectScene;
 
     public override void _Ready()
     {

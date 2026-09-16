@@ -4,7 +4,9 @@ using System.Linq;
 
 using Godot;
 
-namespace BlueLine.Management;
+using BlueLine.Management;
+
+namespace BlueLine.Menus;
 
 public partial class TeamSelect : CanvasLayer
 {
@@ -63,11 +65,15 @@ public partial class TeamSelect : CanvasLayer
         }
         else if (NoTeam == null)
         {
-            throw new InvalidOperationException("Middle ItemList is null. Assign it right goshdarn now you son of a gun.");
+            throw new InvalidOperationException("Selection ItemList is null. Assign it right goshdarn now you son of a gun.");
         }
         else if (HomeTeam == null)
         {
-            throw new InvalidOperationException("Middle ItemList is null. Assign it right goshdarn now you son of a gun.");
+            throw new InvalidOperationException("Home ItemList is null. Assign it right goshdarn now you son of a gun.");
+        }
+        else if (AwayTeam == null)
+        {
+            throw new InvalidOperationException("Away ItemList is null. Assign it now you son of a gun.");
         }
         else if (StatusLabel == null)
         {
@@ -127,22 +133,22 @@ public partial class TeamSelect : CanvasLayer
             // Handle team and position selection
             if (@event.IsActionPressed("ui_left"))
             {
-                MovePlayer(player, MenuDirection.Left);
+                ChangePlayerTeam(player, MenuDirection.Left);
                 GetViewport()?.SetInputAsHandled(); // Prevent default UI focus shifting
             }
             else if (@event.IsActionPressed("ui_right"))
             {
-                MovePlayer(player, MenuDirection.Right);
+                ChangePlayerTeam(player, MenuDirection.Right);
                 GetViewport()?.SetInputAsHandled();
             }
             else if (@event.IsActionPressed("ui_up"))
             {
-                CyclePlayerPosition(player, -1);
+                ChangePlayerPosition(player, -1);
                 GetViewport()?.SetInputAsHandled();
             }
             else if (@event.IsActionPressed("ui_down"))
             {
-                CyclePlayerPosition(player, 1);
+                ChangePlayerPosition(player, 1);
                 GetViewport()?.SetInputAsHandled();
             }
         }
@@ -152,7 +158,7 @@ public partial class TeamSelect : CanvasLayer
 
     #region Private Methods
 
-    private void  MovePlayer(PlayerState player, MenuDirection direction)
+    private void ChangePlayerTeam(PlayerState player, MenuDirection direction)
     {
         if (player.CurrentTeam == SelectedTeam.Unassigned)
         {
@@ -171,7 +177,7 @@ public partial class TeamSelect : CanvasLayer
         UpdateTeamLists();
     }
 
-    private void CyclePlayerPosition(PlayerState player, int direction)
+    private void ChangePlayerPosition(PlayerState player, int direction)
     {
         // Unassigned players don't compete for team roles, cycle normally
         if (player.CurrentTeam == SelectedTeam.Unassigned)
@@ -224,7 +230,7 @@ public partial class TeamSelect : CanvasLayer
         return preferred; // Fallback if team is completely full
     }
 
-    private string FormatPositionName(Positions pos)
+    private string AbbrevPositionName(Positions pos)
     {
         return pos switch
         {
@@ -233,7 +239,7 @@ public partial class TeamSelect : CanvasLayer
             Positions.RightWing => "RW",
             Positions.LeftDefense => "LD",
             Positions.RightDefense => "RD",
-            _ => pos.ToString()
+            _ => throw new NotImplementedException($"The position, {pos} has not been setup for selection yet.")
         };
     }
 
@@ -248,7 +254,7 @@ public partial class TeamSelect : CanvasLayer
         foreach (var player in _players)
         {
             string readyStatus = player.IsReady ? " [READY]" : "";
-            string displayName = $"{player.Name} [{FormatPositionName(player.Position)}]{readyStatus}";
+            string displayName = $"{player.Name} [{AbbrevPositionName(player.Position)}]{readyStatus}";
 
             switch (player.CurrentTeam)
             {

@@ -81,6 +81,12 @@ public partial class MainNode : Node
     /// </summary>
     public IReadOnlyList<Hazmat> Players => _players;
 
+    [Export]
+    public testcolor SkaterHome;
+
+    [Export]
+    public testcolor SkaterAway;
+
     #endregion Properties
 
     #region Events
@@ -95,11 +101,21 @@ public partial class MainNode : Node
         Task.Run(() => AfterGoalTheatrics());
     }
 
-
     public void On_ControllerConnectionChanged(long deviceID, bool connected)
     {
         // TODO: handle dynamically responding to controller plugins/unplugs
         // search the players list for deviceID and assign/unassign ControllerInput
+    }
+
+    public void On_GameState_Changed(GameState state)
+    {
+        // TODO: Add Pause menu
+
+        switch (state)
+        {
+            default:
+                break;
+        }
     }
 
     #endregion Events
@@ -143,25 +159,37 @@ public partial class MainNode : Node
 
         // subscribe to events
         GameEvents.Instance.GoalScored += On_GoalScored;
+        GameEvents.Instance.ChangeGameState += On_GameState_Changed;
+        GameEvents.Instance.PrepareFaceoff += SetupPlayersForFaceoff;
         Input.JoyConnectionChanged += On_ControllerConnectionChanged;
 
         SpawnAndSetupGame();
+
+        SetupColors();
         
         GameEvents.Instance.RaisePrepareFaceoff(FaceoffDot.CenterIce);
     }
 
     public override void _Input(InputEvent @event)
     {
-        if (@event is InputEventJoypadButton button && 
-            button.IsActionPressed("drop_puck"))
+        if (@event is InputEventJoypadButton button)
         {
-            GameEvents.Instance.RaisePrepareFaceoff(FaceoffDot.CenterIce);
+            if (button.IsActionPressed("drop_puck"))
+                GameEvents.Instance.RaisePrepareFaceoff(FaceoffDot.CenterIce);
+            else if (button.IsActionPressed("start"))
+                GameEvents.Instance.RaiseChangeGameState(GameState.Paused);
         }
     }
 
     #endregion Overrides
 
     #region Private Methods
+    
+    private void SetupColors()
+    {
+        SkaterHome.ApplyTeamColors(Color.Color8(206, 17, 38, 255), Color.Color8(255, 255, 255, 255), Color.Color8(241, 194, 125, 255));
+        SkaterAway.ApplyTeamColors(Color.Color8(255, 255, 255, 255), Color.Color8(206, 17, 38, 255), Color.Color8(241, 194, 125, 255));
+    }
 
     private void SpawnAndSetupGame()
     {
@@ -177,12 +205,15 @@ public partial class MainNode : Node
             AddChild(playerInput);
         }
 
+        // Setup faceoff dot refs
+        FaceoffLineup.Instance.SetupFaceoffDots(GetNode<Node>("Arena/Faceoff Dots"));
+
         // create and add the puck and players to the scene
         Puck puck = PuckScene.Instantiate<Puck>();
         _spawnedPuck = puck;
 
         int SkaterCount = MatchStatus.Instance.ConfirmedPlayers.Count > 1 ? MatchStatus.Instance.ConfirmedPlayers.Count : 2;    // for now make sure there's two skaters
-        //SkaterCount = 10;
+        SkaterCount = 10;
         foreach (PlayerSpawnConfig config in BuildSpawnConfigs(SkaterCount))
         {
             Hazmat player = PlayerScene.Instantiate<Hazmat>();
@@ -241,8 +272,6 @@ public partial class MainNode : Node
         AwayGoalie.PuckToTrack = puck;
         AwayGoalie.GoalToDefend = AwayNet;
         AwayNet.PuckToTrack = puck;
-        
-        puck.FaceoffLocations = GetNode<Node>("Arena/Faceoff Dots");
     }
 
     private async Task AfterGoalTheatrics()
@@ -265,7 +294,7 @@ public partial class MainNode : Node
                 PlayerId = spawnCount,
                 DeviceId = -1,
                 Assignment = GetPlayerPosition(spawnCount),
-                SpawnPosition = FaceoffLineup.LineupSkater(GetPlayerPosition(spawnCount), GetNode<Node3D>("Arena/Faceoff Dots/Center Ice"), spawnCount % 2 == 0)
+                SpawnPosition = FaceoffLineup.Instance.LineupSkater(GetPlayerPosition(spawnCount), FaceoffLineup.Instance.FaceoffLocations[FaceoffDot.CenterIce], spawnCount % 2 == 0)
             };
 
             list.Add(skater);
@@ -297,6 +326,22 @@ public partial class MainNode : Node
             }
 
             return (Positions)(playerID / 2);
+        }
+    }
+
+    private void SetupPlayersForFaceoff(FaceoffDot dot)
+    {
+        // we want to loop through the Players list and spawn each player according to where they should be.
+        foreach (Hazmat skater in Players)
+        {
+            skater.Velocity = Vector3.Zero;
+            skater.GlobalPosition = FaceoffLineup.Instance.LineupSkater(skater.Assignment, FaceoffLineup.Instance.FaceoffLocations[dot], skater.HomeTeam);
+            skater.LookAt(FaceoffLineup.Instance.FaceoffLocations[dot].GlobalPosition, useModelFront:true);
+            skater.GlobalRotation = new() { 
+                X=0, 
+                Y=skater.GlobalRotation.Y, 
+                Z=skater.GlobalRotation.Z 
+            };
         }
     }
 

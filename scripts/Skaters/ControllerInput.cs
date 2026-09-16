@@ -1,5 +1,7 @@
 using Godot;
 
+namespace BlueLine;
+
 public partial class ControllerInput : Node
 {
     #region Members

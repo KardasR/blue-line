@@ -12,6 +12,8 @@
 [ext_resource type="Script" uid="uid://rs7plbx7tm1l" path="res://scripts/Attributes/PlayerAttributes.cs" id="8_lhr70"]
 [ext_resource type="PackedScene" uid="uid://cqemkr86gc23n" path="res://scenes/Goalie.tscn" id="8_q8u5g"]
 [ext_resource type="Script" uid="uid://x3ufnuf0rp6t" path="res://scripts/Attributes/WorldAttributes.cs" id="9_wp0k4"]
+[ext_resource type="PackedScene" uid="uid://dx6vq1qkoukos" path="res://scenes/test custom skater.tscn" id="13_qmy6f"]
+[ext_resource type="Script" uid="uid://d1pypkio6dwie" path="res://scripts/testcolor.cs" id="14_mwfav"]
 
 [sub_resource type="Resource" id="Resource_8qu1r"]
 script = ExtResource("8_lhr70")
@@ -33,7 +35,7 @@ metadata/_custom_type_script = "uid://rs7plbx7tm1l"
 script = ExtResource("9_wp0k4")
 metadata/_custom_type_script = "uid://x3ufnuf0rp6t"
 
-[node name="Main" type="Node" unique_id=351154566 node_paths=PackedStringArray("HomeNet", "HomeGoalie", "AwayNet", "AwayGoalie")]
+[node name="Main" type="Node" unique_id=351154566 node_paths=PackedStringArray("HomeNet", "HomeGoalie", "AwayNet", "AwayGoalie", "SkaterHome", "SkaterAway")]
 script = ExtResource("1_rarhs")
 PuckScene = ExtResource("3_0bbpv")
 HomeNet = NodePath("Arena/Joe Louis Arena/Goal A")
@@ -42,6 +44,8 @@ AwayNet = NodePath("Arena/Joe Louis Arena/Goal B")
 AwayGoalie = NodePath("Away Goalie")
 PlayerScene = ExtResource("2_rvslj")
 InputScene = ExtResource("7_bjd11")
+SkaterHome = NodePath("Home Test")
+SkaterAway = NodePath("Away Test")
 
 [node name="Lighting" type="Node" parent="." unique_id=188668628]
 
@@ -99,6 +103,14 @@ Attributes = SubResource("Resource_s03s6")
 WorldAttributes = SubResource("Resource_pk87h")
 LeftMostPos = NodePath("../Arena/Joe Louis Arena/Goal A/Left Goalie")
 RightMostPos = NodePath("../Arena/Joe Louis Arena/Goal A/Right Goalie")
+
+[node name="Home Test" parent="." unique_id=140316969 instance=ExtResource("13_qmy6f")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.74894, 0.013542019, -11.306622)
+script = ExtResource("14_mwfav")
+
+[node name="Away Test" parent="." unique_id=236226157 instance=ExtResource("13_qmy6f")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43, 0, -11)
+script = ExtResource("14_mwfav")
 
 [node name="Arena" parent="." unique_id=1471467799 instance=ExtResource("1_elqb8")]
 
