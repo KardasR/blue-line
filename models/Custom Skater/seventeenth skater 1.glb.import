@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://0p0yyrjghdki"
-path="res://.godot/imported/sixteenth skater 3.glb-fe23d02acb0c4137c4af5ae2ab6b1b8b.scn"
+uid="uid://wncg43do36qs"
+path="res://.godot/imported/seventeenth skater 1.glb-5eef75545c02ae71b309b1a1db36b1a4.scn"
 
 [deps]
 
-source_file="res://models/Custom Skater/sixteenth skater 3.glb"
-dest_files=["res://.godot/imported/sixteenth skater 3.glb-fe23d02acb0c4137c4af5ae2ab6b1b8b.scn"]
+source_file="res://models/Custom Skater/seventeenth skater 1.glb"
+dest_files=["res://.godot/imported/seventeenth skater 1.glb-5eef75545c02ae71b309b1a1db36b1a4.scn"]
 
 [params]
 

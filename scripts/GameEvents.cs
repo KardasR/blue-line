@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-using BlueLine.Skater;
+using BlueLine.Skaters;
 
 namespace BlueLine.Management;
 

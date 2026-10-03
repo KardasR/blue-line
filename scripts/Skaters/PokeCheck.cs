@@ -3,7 +3,7 @@ using Godot;
 
 using BlueLine.FrozenRubber;
 
-namespace BlueLine.Skater;
+namespace BlueLine.Skaters;
 
 public partial class PokeCheck : Node3D
 {

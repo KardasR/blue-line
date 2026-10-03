@@ -5,10 +5,9 @@ using BlueLine.FrozenRubber;
 using BlueLine.VideoFeed;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Runtime.InteropServices;
 using BlueLine.Management;
 
-namespace BlueLine.Skater;
+namespace BlueLine.Skaters;
 
 public partial class Hazmat : CharacterBody3D
 {
@@ -27,8 +26,6 @@ public partial class Hazmat : CharacterBody3D
     private float _passTargetMinDot => Mathf.Cos(Mathf.DegToRad(PassTargetMaxAngle));
 
     private PokeCheck _pokeChecker;
-
-    private ShapeCast3D _bodyCheckZone;
 
     private PlayerState _playerState = PlayerState.Active;
 
@@ -90,6 +87,12 @@ public partial class Hazmat : CharacterBody3D
     /// The different teammates of the player.
     /// </summary>
     public List<Hazmat> Teammates { get; set; }
+
+    /// <summary>
+    /// Shapecast3d used to represent area player can perform a body check.
+    /// </summary>
+    [Export]
+    public ShapeCast3D BodyCheckZone { get; set; }
 
     #region Puck Settings
 
@@ -182,7 +185,6 @@ public partial class Hazmat : CharacterBody3D
 
         _puckHoldPoint = GetNode<Node3D>("Stick/Pivot Point/Puck Hold Point");
         _pokeChecker = GetNode<PokeCheck>("Stick/Pivot Point");
-        _bodyCheckZone = GetNode<ShapeCast3D>("Body Check Zone");
         _modelVisual = GetNode<Node3D>("Model");
 
         GameEvents.Instance.NewPuckCarrier += On_PuckCarrier_Changed;
@@ -304,9 +306,9 @@ public partial class Hazmat : CharacterBody3D
     /// </summary>
     private void PerformBodyCheck()
     {
-        for (int i = 0; i < _bodyCheckZone.GetCollisionCount(); i++)
+        for (int i = 0; i < BodyCheckZone.GetCollisionCount(); i++)
         {
-            if (_bodyCheckZone.GetCollider(i) is Hazmat skater && skater.HomeTeam != HomeTeam)
+            if (BodyCheckZone.GetCollider(i) is Hazmat skater && skater.HomeTeam != HomeTeam)
             {
                 skater.ReceiveBodyCheck(this);
             }

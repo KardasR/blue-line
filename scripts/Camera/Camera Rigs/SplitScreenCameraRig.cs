@@ -1,4 +1,4 @@
-using BlueLine.Skater;
+using BlueLine.Skaters;
 using BlueLine.Management;
 
 using Godot;

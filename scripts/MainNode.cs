@@ -8,7 +8,7 @@ using Godot;
 using BlueLine.Goaltender;
 using BlueLine.FrozenRubber;
 using BlueLine.VideoFeed;
-using BlueLine.Skater;
+using BlueLine.Skaters;
 
 namespace BlueLine.Management;
 

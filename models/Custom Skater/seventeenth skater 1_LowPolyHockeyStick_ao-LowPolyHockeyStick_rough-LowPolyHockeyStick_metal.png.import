@@ -2,20 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://juf1jmhvx3nb"
-path.s3tc="res://.godot/imported/sixteenth skater 3_LowPolyHockeyStick_bcolor.png-836872bbb057a53c49a37eb065972afb.s3tc.ctex"
+uid="uid://cqad4hs3vjbwu"
+path.s3tc="res://.godot/imported/seventeenth skater 1_LowPolyHockeyStick_ao-LowPolyHockeyStick_rough-LowPolyHockeyStick_metal.png-cdc16469086b4f3e819366e531695156.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "6ec5ec9f36af03631e25b05753b55a40"
+"md5": "9cd3def9625abb70f237ed7e26876ad8"
 }
 
 [deps]
 
-source_file="res://models/Custom Skater/sixteenth skater 3_LowPolyHockeyStick_bcolor.png"
-dest_files=["res://.godot/imported/sixteenth skater 3_LowPolyHockeyStick_bcolor.png-836872bbb057a53c49a37eb065972afb.s3tc.ctex"]
+source_file="res://models/Custom Skater/seventeenth skater 1_LowPolyHockeyStick_ao-LowPolyHockeyStick_rough-LowPolyHockeyStick_metal.png"
+dest_files=["res://.godot/imported/seventeenth skater 1_LowPolyHockeyStick_ao-LowPolyHockeyStick_rough-LowPolyHockeyStick_metal.png-cdc16469086b4f3e819366e531695156.s3tc.ctex"]
 
 [params]
 
@@ -29,8 +29,8 @@ compress/normal_map=0
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1
-roughness/mode=0
-roughness/src_normal=""
+roughness/mode=8
+roughness/src_normal="res://models/Custom Skater/seventeenth skater 1_LowPolyHockeyStick_norm.png"
 process/channel_remap/red=0
 process/channel_remap/green=1
 process/channel_remap/blue=2

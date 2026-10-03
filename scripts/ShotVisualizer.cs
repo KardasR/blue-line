@@ -2,7 +2,7 @@ using Godot;
 
 using BlueLine.Management;
 using System.Threading.Tasks;
-using BlueLine.Skater;
+using BlueLine.Skaters;
 
 namespace BlueLine;
 

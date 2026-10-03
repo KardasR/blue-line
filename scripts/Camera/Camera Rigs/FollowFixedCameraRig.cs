@@ -1,5 +1,5 @@
 using BlueLine.Management;
-using BlueLine.Skater;
+using BlueLine.Skaters;
 
 using Godot;
 

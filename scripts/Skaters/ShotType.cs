@@ -1,4 +1,4 @@
-namespace BlueLine.Skater;
+namespace BlueLine.Skaters;
 
 public enum ShotType
 {
