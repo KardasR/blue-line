@@ -67,7 +67,7 @@ public partial class ShotVisualizer : RigidBody3D
 
     #region Private Methods
 
-    private void ReactToNewPuckCarrier(Hazmat skater)
+    private void ReactToNewPuckCarrier(Skater skater)
     {
         if (Net.HomeNet != skater.HomeTeam)
         {

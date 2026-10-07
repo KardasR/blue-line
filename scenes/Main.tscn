@@ -2,8 +2,8 @@
 
 [ext_resource type="PackedScene" uid="uid://bc42jc5himww3" path="res://scenes/Arena.res" id="1_elqb8"]
 [ext_resource type="Script" uid="uid://df2vifu02qwet" path="res://scripts/MainNode.cs" id="1_rarhs"]
-[ext_resource type="PackedScene" uid="uid://sk5sgyaqwtfa" path="res://scenes/Hazmat.tscn" id="2_rvslj"]
 [ext_resource type="PackedScene" uid="uid://cyeykq4vgjpcy" path="res://scenes/Puck.tscn" id="3_0bbpv"]
+[ext_resource type="PackedScene" uid="uid://c66qyhphx5pp7" path="res://scenes/Skater 2.scn" id="3_bjd11"]
 [ext_resource type="PackedScene" uid="uid://c03h5rhgbttpf" path="res://scenes/ScoreBoard.tscn" id="3_jlsqs"]
 [ext_resource type="Script" uid="uid://nwa7805bb0wp" path="res://scripts/Camera/CameraManager.cs" id="5_wp0k4"]
 [ext_resource type="PackedScene" uid="uid://dc3n0sdfq6mbw" path="res://scenes/Input.tscn" id="7_bjd11"]
@@ -33,17 +33,15 @@ metadata/_custom_type_script = "uid://rs7plbx7tm1l"
 script = ExtResource("9_wp0k4")
 metadata/_custom_type_script = "uid://x3ufnuf0rp6t"
 
-[node name="Main" type="Node" unique_id=351154566 node_paths=PackedStringArray("HomeNet", "HomeGoalie", "AwayNet", "AwayGoalie", "SkaterHome", "SkaterAway")]
+[node name="Main" type="Node" unique_id=351154566 node_paths=PackedStringArray("HomeNet", "HomeGoalie", "AwayNet", "AwayGoalie")]
 script = ExtResource("1_rarhs")
 PuckScene = ExtResource("3_0bbpv")
 HomeNet = NodePath("Arena/Joe Louis Arena/Goal A")
 HomeGoalie = NodePath("Home Goalie")
 AwayNet = NodePath("Arena/Joe Louis Arena/Goal B")
 AwayGoalie = NodePath("Away Goalie")
-PlayerScene = ExtResource("2_rvslj")
+PlayerScene = ExtResource("3_bjd11")
 InputScene = ExtResource("7_bjd11")
-SkaterHome = NodePath("")
-SkaterAway = NodePath("")
 
 [node name="Lighting" type="Node" parent="." unique_id=188668628]
 

@@ -37,7 +37,7 @@ offset_right = 1296.0
 offset_bottom = 80.0
 theme_override_fonts/font = SubResource("FontVariation_dp7gr")
 theme_override_font_sizes/font_size = 64
-text = "AWY -"
+text = "TOR -"
 
 [node name="Away Score" type="Label" parent="." unique_id=477242865]
 z_index = 1
@@ -63,7 +63,7 @@ offset_left = 1101.0
 offset_top = 7.0
 offset_right = 1384.0
 offset_bottom = 69.0
-color = Color(0.4601314, 0.0009814823, 0.57863134, 0.79607844)
+color = Color(0, 0.1254902, 0.35686275, 0.79607844)
 
 [node name="Home Color" type="ColorRect" parent="." unique_id=1554795667]
 offset_left = 536.0

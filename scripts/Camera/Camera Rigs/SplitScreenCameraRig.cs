@@ -16,7 +16,7 @@ public class SplitScreenCameraRig : ICameraRig
     private List<SubViewportContainer> _containers = [];
     private List<FollowCamera> _rigs = [];
     private List<Camera3D> _cameras = [];
-    private IReadOnlyList<Hazmat> _players = [];
+    private IReadOnlyList<Skater> _players = [];
 
     public SplitScreenCameraRig(PackedScene scene, Control uiParent)
     {
@@ -24,7 +24,7 @@ public class SplitScreenCameraRig : ICameraRig
         _uiParent = uiParent;
     }
 
-    public void Setup(IReadOnlyList<Hazmat> players, Node3D _)
+    public void Setup(IReadOnlyList<Skater> players, Node3D _)
     {
         if (_followCameraScene == null)
         {
@@ -70,12 +70,12 @@ public class SplitScreenCameraRig : ICameraRig
 
             try
             {
-                Hazmat h = _players.First(p => p.InputDevice?.DeviceId == MatchStatus.Instance.ConfirmedPlayers[i].DeviceId);
-                rig.Target = h;
+                Skater s = _players.First(p => p.InputDevice?.DeviceId == MatchStatus.Instance.ConfirmedPlayers[i].DeviceId);
+                rig.Target = s;
 
                 subViewport.AddChild(rig);
 
-                if (!h.HomeTeam)
+                if (!s.HomeTeam)
                     rig.RotateY(Mathf.Pi);
             }
             catch

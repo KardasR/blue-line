@@ -187,7 +187,7 @@ public partial class Hazmat : CharacterBody3D
         _pokeChecker = GetNode<PokeCheck>("Stick/Pivot Point");
         _modelVisual = GetNode<Node3D>("Model");
 
-        GameEvents.Instance.NewPuckCarrier += On_PuckCarrier_Changed;
+        //GameEvents.Instance.NewPuckCarrier += On_PuckCarrier_Changed;
     }
     /// <summary>
     /// Checks if an input action has been pressed and responds accordingly
@@ -248,7 +248,7 @@ public partial class Hazmat : CharacterBody3D
         _heldPuck = puck;
         _heldPuck.Grab(_puckHoldPoint);
 
-        GameEvents.Instance.RaiseNewPuckCarrier(this);
+        //GameEvents.Instance.RaiseNewPuckCarrier(this);
     }
 
     /// <summary>

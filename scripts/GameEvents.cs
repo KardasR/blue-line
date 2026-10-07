@@ -14,7 +14,7 @@ public partial class GameEvents : Node
     public event Action<bool> GoalScored;
     public event Action<FaceoffDot> PrepareFaceoff;
     public event Action<FaceoffDot> PuckDropped;
-    public event Action<Hazmat> NewPuckCarrier;
+    public event Action<Skater> NewPuckCarrier;
     public event Action<GameState> ChangeGameState;
 
     public override void _EnterTree()
@@ -39,6 +39,7 @@ public partial class GameEvents : Node
         PuckDropped?.Invoke(dot);
         MatchStatus.Instance.State = GameState.Playing;
     }
-    public void RaiseNewPuckCarrier(Hazmat carrier) => NewPuckCarrier?.Invoke(carrier);
+    public void RaiseNewPuckCarrier(Skater carrier) => NewPuckCarrier?.Invoke(carrier);
     public void RaiseChangeGameState(GameState state) => ChangeGameState?.Invoke(state);
+
 }

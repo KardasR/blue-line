@@ -8,7 +8,7 @@ namespace BlueLine.VideoFeed;
 
 public interface ICameraRig
 {
-    void Setup(IReadOnlyList<Hazmat> players, Node3D puck);
+    void Setup(IReadOnlyList<Skater> players, Node3D puck);
 
     void Teardown();
 

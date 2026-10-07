@@ -22,7 +22,7 @@ public partial class MainNode : Node
 
     private ShotVisualizer _awayShotVisualizer;
 
-    private readonly List<Hazmat> _players = [];
+    private readonly List<Skater> _players = [];
 
     #endregion Members
 
@@ -79,13 +79,7 @@ public partial class MainNode : Node
     /// <summary>
     /// A list of players that were spawned into the scene.
     /// </summary>
-    public IReadOnlyList<Hazmat> Players => _players;
-
-    [Export]
-    public testcolor SkaterHome;
-
-    [Export]
-    public testcolor SkaterAway;
+    public IReadOnlyList<Skater> Players => _players;
 
     #endregion Properties
 
@@ -164,8 +158,6 @@ public partial class MainNode : Node
         Input.JoyConnectionChanged += On_ControllerConnectionChanged;
 
         SpawnAndSetupGame();
-
-        SetupColors();
         
         GameEvents.Instance.RaisePrepareFaceoff(FaceoffDot.CenterIce);
     }
@@ -184,12 +176,6 @@ public partial class MainNode : Node
     #endregion Overrides
 
     #region Private Methods
-    
-    private void SetupColors()
-    {
-        SkaterHome.ApplyTeamColors(Color.Color8(206, 17, 38, 255), Color.Color8(255, 255, 255, 255), Color.Color8(241, 194, 125, 255));
-        SkaterAway.ApplyTeamColors(Color.Color8(255, 255, 255, 255), Color.Color8(206, 17, 38, 255), Color.Color8(241, 194, 125, 255));
-    }
 
     private void SpawnAndSetupGame()
     {
@@ -216,12 +202,15 @@ public partial class MainNode : Node
         SkaterCount = 10;
         foreach (PlayerSpawnConfig config in BuildSpawnConfigs(SkaterCount))
         {
-            Hazmat player = PlayerScene.Instantiate<Hazmat>();
+            Skater player = PlayerScene.Instantiate<Skater>();
             player.Name = $"Skater-{config.PlayerId}";
             player.HomeTeam = config.HomeTeam;
             player.PlayerId = config.PlayerId;
             player.AttackingGoal = config.HomeTeam ? AwayNet : HomeNet;
             player.Assignment = config.Assignment;
+            player.PrimaryColor = config.HomeTeam ? Color.Color8(206, 17, 38, 255) : Color.Color8(255, 255, 255, 255);  // wings
+            player.SecondaryColor = config.HomeTeam ? Color.Color8(255, 255, 255, 255) : Color.Color8(0, 32, 91, 255);  // leafs
+            player.SkinColor = Color.Color8(241, 194, 125, 255);
 
             ControllerInput node = config.DeviceId != -1 ? GetNode<ControllerInput>($"ControllerInput{config.DeviceId}") : null;
 
@@ -252,7 +241,7 @@ public partial class MainNode : Node
         }
 
         // setup the teammates for each player.
-        foreach(Hazmat skater in _players)
+        foreach(Skater skater in _players)
         {
             skater.Teammates = _players.Where(s => s != skater && s.HomeTeam == skater.HomeTeam).ToList();
         }
@@ -332,7 +321,7 @@ public partial class MainNode : Node
     private void SetupPlayersForFaceoff(FaceoffDot dot)
     {
         // we want to loop through the Players list and spawn each player according to where they should be.
-        foreach (Hazmat skater in Players)
+        foreach (Skater skater in Players)
         {
             skater.Velocity = Vector3.Zero;
             skater.GlobalPosition = FaceoffLineup.Instance.LineupSkater(skater.Assignment, FaceoffLineup.Instance.FaceoffLocations[dot], skater.HomeTeam);

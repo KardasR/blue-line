@@ -23,7 +23,7 @@ public class FollowFixedCameraRig : ICameraRig
         _parent = parent;
     }
 
-    public void Setup(IReadOnlyList<Hazmat> players, Node3D _)
+    public void Setup(IReadOnlyList<Skater> players, Node3D _)
     {
         if (_followCameraScene == null)
         {

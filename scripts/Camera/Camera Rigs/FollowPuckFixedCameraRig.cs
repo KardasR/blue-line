@@ -21,7 +21,7 @@ public class FollowPuckFixedCameraRig : ICameraRig
         _parent = parent;
     }
 
-    public void Setup(IReadOnlyList<Hazmat> _, Node3D puck)
+    public void Setup(IReadOnlyList<Skater> _, Node3D puck)
     {
         if (_followCameraScene == null)
         {
