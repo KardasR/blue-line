@@ -590,13 +590,15 @@ public partial class Skater : CharacterBody3D
     {
         for (int i = 0; i < BodyCheckZone.GetCollisionCount(); i++)
         {
-            if (BodyCheckZone.GetCollider(i) is Skater skater && skater.HomeTeam != HomeTeam)
+            if (BodyCheckZone.GetCollider(i) is Node node &&
+                node.Owner is Skater skater &&
+                skater.HomeTeam != HomeTeam)
             {
                 skater.ReceiveBodyCheck(this);
+                break;
             }
         }
 
-        //Task.Run(() => WaitToRecoverFromBodyCheck());
         _ = WaitToRecoverFromBodyCheck();
     }
 
