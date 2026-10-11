@@ -4,7 +4,7 @@ using Godot;
 using BlueLine.Management;
 using BlueLine.FrozenRubber;
 
-namespace BlueLine;
+namespace BlueLine.Goaltender;
 
 public partial class Net : MeshInstance3D
 {

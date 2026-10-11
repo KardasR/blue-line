@@ -4,7 +4,7 @@ using BlueLine.Management;
 using System.Threading.Tasks;
 using BlueLine.Skaters;
 
-namespace BlueLine;
+namespace BlueLine.Goaltender;
 
 public partial class ShotVisualizer : RigidBody3D
 {

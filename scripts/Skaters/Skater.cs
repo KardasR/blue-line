@@ -6,6 +6,8 @@ using BlueLine.VideoFeed;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BlueLine.Management;
+using BlueLine.Goaltender;
+using System.Linq;
 
 namespace BlueLine.Skaters;
 
@@ -83,7 +85,7 @@ public partial class Skater : CharacterBody3D
     /// <summary>
     /// Which controller the player responds to.
     /// </summary>
-    public ControllerInput InputDevice { get; set; }
+    public BaseInput InputDevice { get; set; }
 
     /// <summary>
     /// The different teammates of the player.
@@ -106,10 +108,13 @@ public partial class Skater : CharacterBody3D
     public Color SkinColor { get; set; }
 
     [Export]
-    public Node3D ForehandPuckHoldPoint { get; set; }
+    public Node3D GlideForehandPoint { get; set; }
 
     [Export]
-    public Node3D BackhandPuckHoldPoint { get; set; }
+    public Node3D GlideBackhandPoint { get; set; }
+
+    [Export]
+    public Node3D SkatingHoldPoint { get; set; }
 
     #region Body Checking
 
@@ -193,8 +198,14 @@ public partial class Skater : CharacterBody3D
         //     return;
         // }
 
+        // TODO: put this in a better spot.
+        string[] sarr = ["PASS", "PASSBACK", "WRISTSHOT"];
+
         //if (_heldPuck == null && !_pokeChecker.IsActivelyPoking && puck.State != PuckStates.Held)
-        if (_heldPuck == null && puck.State != PuckStates.Held)
+
+        if (_heldPuck == null && 
+            puck.State != PuckStates.Held &&
+            !sarr.Contains(_animationStateMachine.GetCurrentNode().ToString()))
         {
             GrabPuck(puck);
         }
@@ -337,6 +348,9 @@ public partial class Skater : CharacterBody3D
 
         if (direction != Vector3.Zero)
         {
+            if (_heldPuck != null)
+                _heldPuck.GlobalPosition = SkatingHoldPoint.GlobalPosition;
+
             SetAnimation("SKATE");
 
             float speed = Attributes.SkatingSpeed;
@@ -360,6 +374,9 @@ public partial class Skater : CharacterBody3D
         }
         else
         {
+            if (_heldPuck != null && _heldPuck.GlobalPosition != GlideBackhandPoint.GlobalPosition)
+                _heldPuck.GlobalPosition = GlideForehandPoint.GlobalPosition;
+
             SetAnimation("IDLE");
 
             horizontalVelocity = horizontalVelocity.MoveToward(
@@ -420,7 +437,8 @@ public partial class Skater : CharacterBody3D
         puck.ResetPuck();
 
         _heldPuck = puck;
-        _heldPuck.Grab(ForehandPuckHoldPoint);
+        
+        _heldPuck.Grab(_animationStateMachine.GetCurrentNode() == "SKATE" ? SkatingHoldPoint : GlideForehandPoint);
 
         GameEvents.Instance.RaiseNewPuckCarrier(this);
     }
@@ -436,62 +454,9 @@ public partial class Skater : CharacterBody3D
             !_isAbleToDoStuff)
             return;
 
-        if (InputDevice.IsShooting && !_takingShot)
-        {
-            _takingShot = true;
-            _shotTimer = 0;
-        }
-        if (_takingShot ||
-            dangle.Y < -WorldAttributes.ShotDeadzone)
-        {
-            _shotTimer += 1;
-        }
-        if ((!InputDevice.IsShooting && _takingShot) ||
-            dangle.Y > WorldAttributes.ShotDeadzone)
-        {
-            SetAnimation("WRISTSHOT");
+        CheckForShot(dangle.Y);
 
-            float speed = _shotTimer >= WorldAttributes.SlapshotThreshold ? Attributes.ShotSpeed * Attributes.SlapshotMultiplier : Attributes.ShotSpeed;
-
-            _heldPuck.Shoot(AttackingGoal.GetTargetPoint(aim), speed);
-
-            _heldPuck = null;
-            _takingShot = false;
-            _shotTimer = 0;
-        }
-
-        // TODO: support saucer passes.
-        if (InputDevice.IsPassing)
-        {
-            SetAnimation("PASS");
-            Vector3 aimDirection = GetCameraRelativeDirection(aim);
-
-            if (aimDirection == Vector3.Zero)
-            {
-                // If the stick isn't moved then just pass forward.
-                _heldPuck.PassInDirection(GlobalTransform.Basis.Z, Attributes.PassSpeed);
-            }
-            else
-            {
-                Skater target = FindBestPassTarget(aimDirection);
-                if (target != null)
-                {
-                    Vector3 targetVelocity = new Vector3(target.Velocity.X, 0, target.Velocity.Z);
-                    Vector3 leadPosition = target.ForehandPuckHoldPoint.GlobalPosition;
-
-                    if (TryGetPassingTime(target.ForehandPuckHoldPoint.GlobalPosition, targetVelocity, Attributes.PassSpeed, out float t))
-                    {
-                        leadPosition = target.ForehandPuckHoldPoint.GlobalPosition + targetVelocity * t;
-                    }
-
-                    _heldPuck.PassToTarget(leadPosition, Attributes.PassSpeed);
-                }
-                else
-                    _heldPuck.PassInDirection(aimDirection, Attributes.PassSpeed);
-            }
-
-            _heldPuck = null;
-        }
+        CheckForPass(aim);
     }
 
     /// <summary>
@@ -505,8 +470,11 @@ public partial class Skater : CharacterBody3D
             !_isAbleToDoStuff)
             return;
 
-        Vector3 posToMovePuck = input.X > 0 ? BackhandPuckHoldPoint.GlobalPosition : ForehandPuckHoldPoint.GlobalPosition;
-        _heldPuck.GlobalPosition = _heldPuck.GlobalPosition.Lerp(posToMovePuck, Attributes.StickHandleSpeed * (float)delta);
+        if (_animationStateMachine.GetCurrentNode() != "SKATE")
+        {
+            Vector3 posToMovePuck = input.X > 0 ? GlideBackhandPoint.GlobalPosition : GlideForehandPoint.GlobalPosition;
+            _heldPuck.GlobalPosition = _heldPuck.GlobalPosition.Lerp(posToMovePuck, Attributes.StickHandleSpeed * (float)delta);
+        }
     }
 
     #endregion Puck Actions
@@ -628,6 +596,46 @@ public partial class Skater : CharacterBody3D
 
     #region Passing
 
+    private void CheckForPass(Vector2 aim)
+    {
+        // TODO: support saucer passes.
+        if (InputDevice.IsPassing)
+        {
+            Vector3 aimDirection = GetCameraRelativeDirection(aim);
+            _heldPuck.GlobalPosition = GlideForehandPoint.GlobalPosition;
+
+            if (aimDirection == Vector3.Zero)
+            {
+                // If the stick isn't moved then just pass forward.
+                _heldPuck.PassInDirection(GlobalTransform.Basis.Z, Attributes.PassSpeed);
+            }
+            else
+            {
+                // TODO: Check if the user will be passing behind the skater. If so, play the backward pass animation
+                // TODO: check if the way we determine skating vs glide is fine.
+
+                Skater target = FindBestPassTarget(aimDirection);
+                if (target != null)
+                {
+                    Vector3 targetVelocity = new(target.Velocity.X, 0, target.Velocity.Z);
+                    Vector3 leadPosition = targetVelocity > new Vector3(10, 0, 10) ? target.SkatingHoldPoint.GlobalPosition : target.GlideForehandPoint.GlobalPosition;
+
+                    if (TryGetPassingTime(leadPosition, targetVelocity, Attributes.PassSpeed, out float t))
+                    {
+                        leadPosition += targetVelocity * t;
+                    }
+
+                    _heldPuck.PassToTarget(leadPosition, Attributes.PassSpeed);
+                }
+                else
+                    _heldPuck.PassInDirection(aimDirection, Attributes.PassSpeed);
+            }
+
+            SetAnimation("PASS");
+            _heldPuck = null;
+        }
+    }
+
     /// <summary>
     /// See if there is a teammate to pass to in the direction the player is pointing.
     /// </summary>
@@ -640,7 +648,10 @@ public partial class Skater : CharacterBody3D
 
         foreach (var teammate in Teammates)
         {
-            Vector3 toTeammate = teammate.ForehandPuckHoldPoint.GlobalPosition - GlobalPosition;
+            Vector3 targetVelocity = new(teammate.Velocity.X, 0, teammate.Velocity.Z);
+            Vector3 leadPosition = targetVelocity > new Vector3(10, 0, 10) ? teammate.SkatingHoldPoint.GlobalPosition : teammate.GlideForehandPoint.GlobalPosition;
+
+            Vector3 toTeammate = leadPosition - GlobalPosition;
             toTeammate.Y = 0;
 
             if (toTeammate.LengthSquared() < 0.01f) continue;
@@ -711,6 +722,48 @@ public partial class Skater : CharacterBody3D
 
     #endregion Passing
 
+    #region Shooting
+
+    /// <summary>
+    /// This will be called by the skaters AnimationPlayer when doing a type of shooting animation.
+    /// 
+    /// This is to make sure the puck shoots off the puck when it visually makes sense.
+    /// </summary>
+    public void AnimationReadyToShoot()
+    {
+        float speed = _shotTimer >= WorldAttributes.SlapshotThreshold ? Attributes.ShotSpeed * Attributes.SlapshotMultiplier : Attributes.ShotSpeed;
+
+        _heldPuck.Shoot(AttackingGoal.GetTargetPoint(InputDevice.Movement), speed);
+
+        _heldPuck = null;
+        _takingShot = false;
+        _shotTimer = 0;
+    }
+
+    private void CheckForShot(float rightStickY)
+    {
+        if (InputDevice.IsShooting && !_takingShot)
+        {
+            // user has started their shot
+            _takingShot = true;
+            _shotTimer = 0;
+        }
+        if (_takingShot ||
+            rightStickY < -WorldAttributes.ShotDeadzone)
+        {
+            // charge up a slapshot
+            _shotTimer += 1;
+        }
+        if ((!InputDevice.IsShooting && _takingShot) ||
+            rightStickY > WorldAttributes.ShotDeadzone)
+        {
+            _heldPuck.GlobalPosition = GlideForehandPoint.GlobalPosition;
+            SetAnimation("WRISTSHOT");
+        }
+    }
+
+    #endregion Shooting
+
     #region Animations
 
     private void SetAnimation(string animation)
@@ -757,4 +810,10 @@ public partial class Skater : CharacterBody3D
     }
     
     #endregion Color
+
+    #region AI Controllers
+    
+
+
+    #endregion AI Controllers
 }

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace BlueLine;
+namespace BlueLine.Management;
 
 public enum Positions
 {
