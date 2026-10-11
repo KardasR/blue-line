@@ -75,7 +75,7 @@ public class SplitScreenCameraRig : ICameraRig
 
                 subViewport.AddChild(rig);
 
-                if (!s.HomeTeam)
+                if (!s.IsHomeTeam)
                     rig.RotateY(Mathf.Pi);
             }
             catch

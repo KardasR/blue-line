@@ -95,12 +95,10 @@ public partial class MainNode : Node
         Task.Run(() => AfterGoalTheatrics());
     }
 
-    public void On_ControllerConnectionChanged(long deviceID, bool connected)
-    {
-        // TODO: handle dynamically responding to controller plugins/unplugs
-        // search the players list for deviceID and assign/unassign ControllerInput
-    }
-
+    /// <summary>
+    /// This will allow the scene to react to changes of the game state (pause, end of period, etc)
+    /// </summary>
+    /// <param name="state"></param>
     public void On_GameState_Changed(GameState state)
     {
         // TODO: Add Pause menu
@@ -155,7 +153,6 @@ public partial class MainNode : Node
         GameEvents.Instance.GoalScored += On_GoalScored;
         GameEvents.Instance.ChangeGameState += On_GameState_Changed;
         GameEvents.Instance.PrepareFaceoff += SetupPlayersForFaceoff;
-        Input.JoyConnectionChanged += On_ControllerConnectionChanged;
 
         SpawnAndSetupGame();
         
@@ -197,39 +194,43 @@ public partial class MainNode : Node
         // create and add the puck and players to the scene
         Puck puck = PuckScene.Instantiate<Puck>();
         _spawnedPuck = puck;
-
-        int SkaterCount = MatchStatus.Instance.ConfirmedPlayers.Count > 1 ? MatchStatus.Instance.ConfirmedPlayers.Count : 2;    // for now make sure there's two skaters
-        SkaterCount = 10;
-        foreach (PlayerSpawnConfig config in BuildSpawnConfigs(SkaterCount))
+        
+        foreach (PlayerSpawnConfig config in MatchStatus.Instance.ConfirmedPlayers)
         {
             Skater player = PlayerScene.Instantiate<Skater>();
+            
             player.Name = $"Skater-{config.PlayerId}";
-            player.HomeTeam = config.HomeTeam;
+            player.IsHomeTeam = config.PlayerTeam.HomeOrAway == TeamEnum.Home;
             player.PlayerId = config.PlayerId;
-            player.AttackingGoal = config.HomeTeam ? AwayNet : HomeNet;
+            player.AttackingGoal = player.IsHomeTeam ? AwayNet : HomeNet;
             player.Assignment = config.Assignment;
-            player.PrimaryColor = config.HomeTeam ? Color.Color8(206, 17, 38, 255) : Color.Color8(255, 255, 255, 255);  // wings
-            player.SecondaryColor = config.HomeTeam ? Color.Color8(255, 255, 255, 255) : Color.Color8(0, 32, 91, 255);  // leafs
-            player.SkinColor = Color.Color8(241, 194, 125, 255);
+            player.PrimaryColor = config.PlayerTeam.PrimaryColor;
+            player.SecondaryColor = config.PlayerTeam.SecondaryColor;
+            player.SkinColor = config.SkinColor;
 
-            ControllerInput node = config.DeviceId != -1 ? GetNode<ControllerInput>($"ControllerInput{config.DeviceId}") : null;
+            BaseInput input = config.DeviceId != -1 ? GetNode<ControllerInput>($"ControllerInput{config.DeviceId}") : null;
 
-            if (numOfContr > 0 && config.HomeTeam && node != null)
+            if (numOfContr > 0 && player.IsHomeTeam && input != null)
             {
-                player.InputDevice = node;
-                _homeShotVisualizer.Controller = _homeShotVisualizer.Controller == null ? node : null;
+                player.InputDevice = input;
+                _homeShotVisualizer.Controller = input is ControllerInput contr && _homeShotVisualizer.Controller == null ? contr : null;
                 numOfContr -= 1;
             }
-            else if (numOfContr > 0 && node != null)
+            else if (numOfContr > 0 && input != null)
             {
-                player.InputDevice = node;
-                _awayShotVisualizer.Controller = _awayShotVisualizer.Controller == null ? node : null;
+                player.InputDevice = input;
+                _awayShotVisualizer.Controller = input is ControllerInput contr && _awayShotVisualizer.Controller == null ? contr : null;
                 numOfContr -= 1;
             }
 
             AddChild(player);
+            
+            player.GlobalPosition = FaceoffLineup.Instance.LineupSkater(
+                GetPlayerPosition(config.PlayerId), 
+                FaceoffLineup.Instance.FaceoffLocations[FaceoffDot.CenterIce], 
+                config.PlayerTeam.HomeOrAway == TeamEnum.Home
+            ); // set after AddChild so it's not overwritten by scene defaults
 
-            player.GlobalPosition = config.SpawnPosition; // set after AddChild so it's not overwritten by scene defaults
             player.LookAt(GetNode<Node3D>("Arena/Faceoff Dots/Center Ice").GlobalPosition, useModelFront: true);
             player.GlobalRotation = new() {
                 X = 0, 
@@ -243,11 +244,11 @@ public partial class MainNode : Node
         // setup the teammates for each player.
         foreach(Skater skater in _players)
         {
-            skater.Teammates = _players.Where(s => s != skater && s.HomeTeam == skater.HomeTeam).ToList();
+            skater.Teammates = _players.Where(s => s != skater && s.IsHomeTeam == skater.IsHomeTeam).ToList();
         }
 
         CameraManager.Instance.SetMode(
-            MatchStatus.Instance.ConfirmedPlayers.Count <= 1 ? CameraMode.FollowFixed : CameraMode.SplitScreen,
+            Input.GetConnectedJoypads().Count <= 1 ? CameraMode.FollowFixed : CameraMode.SplitScreen,
             _players,
             puck
         );
@@ -261,51 +262,6 @@ public partial class MainNode : Node
         AwayGoalie.PuckToTrack = puck;
         AwayGoalie.GoalToDefend = AwayNet;
         AwayNet.PuckToTrack = puck;
-    }
-
-    private async Task AfterGoalTheatrics()
-    {
-        await ToSignal(GetTree().CreateTimer(ResetTimer), SceneTreeTimer.SignalName.Timeout);
-
-        GameEvents.Instance.RaisePrepareFaceoff(FaceoffDot.CenterIce);
-    }
-
-    private List<PlayerSpawnConfig> BuildSpawnConfigs(int numToSpawn)
-    {
-        List<PlayerSpawnConfig> list = [];
-
-        // TODO: 1v1 will only spawn centers. This will cause issues if a user doesn't select the center position
-        for(int spawnCount = 0; spawnCount < numToSpawn; spawnCount++)
-        {
-            PlayerSpawnConfig skater = new()
-            {
-                HomeTeam = spawnCount % 2 == 0,
-                PlayerId = spawnCount,
-                DeviceId = -1,
-                Assignment = GetPlayerPosition(spawnCount),
-                SpawnPosition = FaceoffLineup.Instance.LineupSkater(GetPlayerPosition(spawnCount), FaceoffLineup.Instance.FaceoffLocations[FaceoffDot.CenterIce], spawnCount % 2 == 0)
-            };
-
-            list.Add(skater);
-        }
-
-        foreach (PlayerLobbyEntry player in MatchStatus.Instance.ConfirmedPlayers)
-        {
-            PlayerSpawnConfig config = list.Find(f => f.HomeTeam == player.HomeTeam && f.Assignment == player.Position);
-
-            if (!config.Equals(default(PlayerSpawnConfig)))
-            {
-                list[config.PlayerId] = new() { 
-                    Assignment=config.Assignment, 
-                    DeviceId=player.DeviceId,
-                    PlayerId=config.PlayerId,
-                    HomeTeam=config.HomeTeam,
-                    SpawnPosition=config.SpawnPosition
-                };
-            }
-        }
-
-        return list;
 
         static Positions GetPlayerPosition(int playerID)
         {
@@ -318,13 +274,20 @@ public partial class MainNode : Node
         }
     }
 
+    private async Task AfterGoalTheatrics()
+    {
+        await ToSignal(GetTree().CreateTimer(ResetTimer), SceneTreeTimer.SignalName.Timeout);
+
+        GameEvents.Instance.RaisePrepareFaceoff(FaceoffDot.CenterIce);
+    }
+
     private void SetupPlayersForFaceoff(FaceoffDot dot)
     {
         // we want to loop through the Players list and spawn each player according to where they should be.
         foreach (Skater skater in Players)
         {
             skater.Velocity = Vector3.Zero;
-            skater.GlobalPosition = FaceoffLineup.Instance.LineupSkater(skater.Assignment, FaceoffLineup.Instance.FaceoffLocations[dot], skater.HomeTeam);
+            skater.GlobalPosition = FaceoffLineup.Instance.LineupSkater(skater.Assignment, FaceoffLineup.Instance.FaceoffLocations[dot], skater.IsHomeTeam);
             skater.LookAt(FaceoffLineup.Instance.FaceoffLocations[dot].GlobalPosition, useModelFront:true);
             skater.GlobalRotation = new() { 
                 X=0, 

@@ -70,7 +70,7 @@ public partial class Skater : CharacterBody3D
     /// <summary>
     /// Is this player on the home or away team?
     /// </summary>
-    public bool HomeTeam { get; set; }
+    public bool IsHomeTeam { get; set; }
 
     /// <summary>
     /// What position the player is slotted in.
@@ -560,7 +560,7 @@ public partial class Skater : CharacterBody3D
         {
             if (BodyCheckZone.GetCollider(i) is Node node &&
                 node.Owner is Skater skater &&
-                skater.HomeTeam != HomeTeam)
+                skater.IsHomeTeam != IsHomeTeam)
             {
                 skater.ReceiveBodyCheck(this);
                 break;

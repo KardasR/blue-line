@@ -11,13 +11,6 @@ public partial class ControllerInput : BaseInput
 
     #endregion Members
 
-    #region Properties
-
-    public new Vector2 Movement => ApplyDeadzone(_movement);
-    public new Vector2 StickHandle => ApplyDeadzone(_stickHandle);
-
-    #endregion Properties
-
     #region Overrides
 
     public override void _Input(InputEvent @event)
@@ -28,16 +21,28 @@ public partial class ControllerInput : BaseInput
         if (@event is InputEventJoypadMotion motion)
         {
             if (motion.Axis == JoyAxis.LeftX)
+            {
                 _movement.X = motion.AxisValue;
+                Movement = ApplyDeadzone(_movement);
+            }
 
             else if (motion.Axis == JoyAxis.LeftY)
+            {
                 _movement.Y = motion.AxisValue;
+                Movement = ApplyDeadzone(_movement);
+            }
 
             else if (motion.Axis == JoyAxis.RightX)
+            {
                 _stickHandle.X = -motion.AxisValue;
+                StickHandle = ApplyDeadzone(_stickHandle);
+            }
 
             else if (motion.Axis == JoyAxis.RightY)
+            {
                 _stickHandle.Y = -motion.AxisValue;
+                StickHandle = ApplyDeadzone(_stickHandle);
+            }
                 
             if (motion.IsActionPressed("skate_backwards")) IsSkatingBackwards = true;
             else if (motion.IsActionReleased("skate_backwards")) IsSkatingBackwards = false;

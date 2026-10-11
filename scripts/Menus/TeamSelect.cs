@@ -18,7 +18,6 @@ public partial class TeamSelect : CanvasLayer
 
     #region Enums
 
-    public enum SelectedTeam { Home, Unassigned, Away }
     private enum MenuDirection { Left, Right }
 
     #endregion Enums
@@ -32,6 +31,32 @@ public partial class TeamSelect : CanvasLayer
         public SelectedTeam CurrentTeam { get; set; }
         public Positions Position { get; set; }
         public bool IsReady { get; set; }
+    }
+
+    /// <summary>
+    /// Detroit Red Wing home colors
+    /// </summary>
+    private struct HomeColors
+    {
+        public static Color Primary => Color.Color8(206, 17, 38, 255);
+        public static Color Secondary => Color.Color8(255, 255, 255, 255);
+    }
+
+    /// <summary>
+    /// Toronto Maple Leafs away colors
+    /// </summary>
+    private struct AwayColors
+    {
+        public static Color Primary => Color.Color8(255, 255, 255, 255);
+        public static Color Secondary => Color.Color8(0, 32, 91, 255);
+    }
+
+    /// <summary>
+    /// Obvious color for debug
+    /// </summary>
+    private struct UnassignedColors
+    {
+        public static Color GreenScreen => Color.Color8(4, 244, 4, 255);
     }
 
     #endregion Helper Classes
@@ -82,7 +107,14 @@ public partial class TeamSelect : CanvasLayer
 
         foreach (int controllerNum in Input.GetConnectedJoypads())
         {
-            _players.Add(new() { DeviceId = controllerNum, Name = $"Player {controllerNum}", CurrentTeam = SelectedTeam.Unassigned });
+            _players.Add(new() { 
+                DeviceId = controllerNum, 
+                Name = $"Player {controllerNum}", 
+                CurrentTeam = new() { 
+                    HomeOrAway=TeamEnum.Unassigned, 
+                    PrimaryColor=UnassignedColors.GreenScreen, 
+                    SecondaryColor=UnassignedColors.GreenScreen
+            } } );
         }
 
         MatchStatus.Instance.State = GameState.PreGame;
@@ -104,7 +136,7 @@ public partial class TeamSelect : CanvasLayer
             if (@event.IsActionPressed("ui_accept"))
             {
                 // Can only ready up if actually assigned to a team
-                if (player.CurrentTeam != SelectedTeam.Unassigned && !player.IsReady)
+                if (player.CurrentTeam.HomeOrAway != TeamEnum.Unassigned && !player.IsReady)
                 {
                     player.IsReady = true;
                     UpdateTeamLists();
@@ -158,19 +190,24 @@ public partial class TeamSelect : CanvasLayer
 
     #region Private Methods
 
+    /// <summary>
+    /// Allow the 
+    /// </summary>
+    /// <param name="player"></param>
+    /// <param name="direction"></param>
     private void ChangePlayerTeam(PlayerState player, MenuDirection direction)
     {
-        if (player.CurrentTeam == SelectedTeam.Unassigned)
+        if (player.CurrentTeam.HomeOrAway == TeamEnum.Unassigned)
         {
-            player.CurrentTeam = (direction == MenuDirection.Left) ? SelectedTeam.Home : SelectedTeam.Away;
+            player.CurrentTeam.HomeOrAway = (direction == MenuDirection.Left) ? TeamEnum.Home : TeamEnum.Away;
         }
-        else if (player.CurrentTeam == SelectedTeam.Home && direction == MenuDirection.Right)
+        else if (player.CurrentTeam.HomeOrAway == TeamEnum.Home && direction == MenuDirection.Right)
         {
-            player.CurrentTeam = SelectedTeam.Unassigned;
+            player.CurrentTeam.HomeOrAway = TeamEnum.Unassigned;
         }
-        else if (player.CurrentTeam == SelectedTeam.Away && direction == MenuDirection.Left)
+        else if (player.CurrentTeam.HomeOrAway == TeamEnum.Away && direction == MenuDirection.Left)
         {
-            player.CurrentTeam = SelectedTeam.Unassigned;
+            player.CurrentTeam.HomeOrAway = TeamEnum.Unassigned;
         }
 
         // Refresh UI lists to show the new positions
@@ -180,7 +217,7 @@ public partial class TeamSelect : CanvasLayer
     private void ChangePlayerPosition(PlayerState player, int direction)
     {
         // Unassigned players don't compete for team roles, cycle normally
-        if (player.CurrentTeam == SelectedTeam.Unassigned)
+        if (player.CurrentTeam.HomeOrAway == TeamEnum.Unassigned)
         {
             player.Position = GetNextRawPosition(player.Position, direction);
             UpdateTeamLists();
@@ -216,14 +253,14 @@ public partial class TeamSelect : CanvasLayer
     }
 
     // Finds a vacant position on a team starting from a preferred option
-    private Positions GetFirstAvailablePosition(SelectedTeam team, Positions preferred)
+    private Positions GetFirstAvailablePosition(TeamEnum team, Positions preferred)
     {
         Positions checkedPos = preferred;
         int total = Enum.GetValues(typeof(Positions)).Length;
 
         for (int i = 0; i < total; i++)
         {
-            bool isOccupied = _players.Any(p => p.CurrentTeam == team && p.Position == checkedPos);
+            bool isOccupied = _players.Any(p => p.CurrentTeam.HomeOrAway == team && p.Position == checkedPos);
             if (!isOccupied) return checkedPos;
             checkedPos = GetNextRawPosition(checkedPos, 1);
         }
@@ -256,16 +293,22 @@ public partial class TeamSelect : CanvasLayer
             string readyStatus = player.IsReady ? " [READY]" : "";
             string displayName = $"{player.Name} [{AbbrevPositionName(player.Position)}]{readyStatus}";
 
-            switch (player.CurrentTeam)
+            switch (player.CurrentTeam.HomeOrAway)
             {
-                case SelectedTeam.Home:
+                case TeamEnum.Home:
                     HomeTeam.AddItem(displayName);
+                    player.CurrentTeam.PrimaryColor = HomeColors.Primary;
+                    player.CurrentTeam.SecondaryColor = HomeColors.Secondary;
                     break;
-                case SelectedTeam.Unassigned:
+                case TeamEnum.Unassigned:
                     NoTeam.AddItem(displayName);
+                    player.CurrentTeam.PrimaryColor = UnassignedColors.GreenScreen;
+                    player.CurrentTeam.SecondaryColor = UnassignedColors.GreenScreen;
                     break;
-                case SelectedTeam.Away:
+                case TeamEnum.Away:
                     AwayTeam.AddItem(displayName);
+                    player.CurrentTeam.PrimaryColor = AwayColors.Primary;
+                    player.CurrentTeam.SecondaryColor = AwayColors.Secondary;
                     break;
             }
         }
@@ -273,7 +316,7 @@ public partial class TeamSelect : CanvasLayer
 
     private void CheckStartGameCondition()
     {
-        bool allAssigned = _players.All(p => p.CurrentTeam != SelectedTeam.Unassigned);
+        bool allAssigned = _players.All(p => p.CurrentTeam.HomeOrAway != TeamEnum.Unassigned);
         bool allReady = _players.All(p => p.IsReady);
 
         if (allAssigned && allReady)
@@ -288,17 +331,66 @@ public partial class TeamSelect : CanvasLayer
     {
         MatchStatus.Instance.ConfirmedPlayers.Clear();
 
-        foreach (PlayerState player in _players)
-        {
-            MatchStatus.Instance.ConfirmedPlayers.Add(new() 
-            { 
-                DeviceId = player.DeviceId, 
-                HomeTeam = player.CurrentTeam == SelectedTeam.Home, 
-                Position = player.Position 
-            });
-        }
+        MatchStatus.Instance.ConfirmedPlayers.AddRange(BuildSpawnConfigs(10));
 
         GetTree().ChangeSceneToPacked(MainScene);
+    }
+
+    private List<PlayerSpawnConfig> BuildSpawnConfigs(int numToSpawn)
+    {
+        List<PlayerSpawnConfig> list = [];
+
+        // TODO: 1v1 will only spawn centers. This will cause issues if a user doesn't select the center position
+        for(int spawnCount = 0; spawnCount < numToSpawn; spawnCount++)
+        {
+            bool isHomeTeam = spawnCount % 2 == 0;
+
+            PlayerSpawnConfig skater = new()
+            {
+                PlayerTeam = new() { 
+                    HomeOrAway      = isHomeTeam ? TeamEnum.Home : TeamEnum.Away,
+                    PrimaryColor    = isHomeTeam ? HomeColors.Primary : AwayColors.Primary,
+                    SecondaryColor  = isHomeTeam ? HomeColors.Secondary : AwayColors.Secondary },
+                PlayerId = spawnCount,
+                DeviceId = -1,
+                Assignment = GetPlayerPosition(spawnCount),
+                //SpawnPosition = FaceoffLineup.Instance.LineupSkater(GetPlayerPosition(spawnCount), FaceoffLineup.Instance.FaceoffLocations[FaceoffDot.CenterIce], isHomeTeam),
+                SkinColor = Color.Color8(241, 194, 125, 255),
+            };
+
+            list.Add(skater);
+        }
+
+        foreach (PlayerState player in _players)
+        {
+            PlayerSpawnConfig config = list.Find(
+                f => f.PlayerTeam.HomeOrAway == player.CurrentTeam.HomeOrAway && f.Assignment == player.Position
+            );
+
+            if (!config.Equals(default(PlayerSpawnConfig)))
+            {
+                list[config.PlayerId] = new() { 
+                    Assignment=config.Assignment, 
+                    DeviceId=player.DeviceId,
+                    PlayerId=config.PlayerId,
+                    PlayerTeam=config.PlayerTeam,
+                    //SpawnPosition=config.SpawnPosition,
+                    SkinColor=config.SkinColor,
+                };
+            }
+        }
+
+        return list;
+
+        static Positions GetPlayerPosition(int playerID)
+        {
+            if (playerID % 2 != 0)
+            {
+                playerID -= 1;
+            }
+
+            return (Positions)(playerID / 2);
+        }
     }
 
     #endregion Private Methods

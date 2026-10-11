@@ -7,7 +7,7 @@ public partial class MatchStatus : Node
 {
     private GameState _state;
     public static MatchStatus Instance { get; private set; }
-    public List<PlayerLobbyEntry> ConfirmedPlayers = [];
+    public List<PlayerSpawnConfig> ConfirmedPlayers = [];
     public GameState State 
     { 
         get

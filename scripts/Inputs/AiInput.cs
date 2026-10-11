@@ -2,7 +2,7 @@ using Godot;
 
 namespace BlueLine.Skaters;
 
-public partial class AiInput : ControllerInput
+public partial class AiInput : BaseInput
 {
     
 }

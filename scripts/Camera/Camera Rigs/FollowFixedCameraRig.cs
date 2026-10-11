@@ -42,7 +42,7 @@ public class FollowFixedCameraRig : ICameraRig
 
         _camera.Current = true;
 
-        if (!players.First(p => p.InputDevice?.DeviceId == MatchStatus.Instance.ConfirmedPlayers[0].DeviceId).HomeTeam)
+        if (!players.First(p => p.InputDevice?.DeviceId == MatchStatus.Instance.ConfirmedPlayers[0].DeviceId).IsHomeTeam)
             _rig.RotateY(Mathf.Pi);
     }
 

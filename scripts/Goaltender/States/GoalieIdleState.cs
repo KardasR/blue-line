@@ -1,3 +1,5 @@
+using BlueLine.Management;
+
 namespace BlueLine.Goaltender;
 
 public class GoalieIdleState : GoalieState

@@ -69,7 +69,7 @@ public partial class ShotVisualizer : RigidBody3D
 
     private void ReactToNewPuckCarrier(Skater skater)
     {
-        if (Net.HomeNet != skater.HomeTeam)
+        if (Net.HomeNet != skater.IsHomeTeam)
         {
             //_okayToMove = false;
             //_input = skater.InputDevice;

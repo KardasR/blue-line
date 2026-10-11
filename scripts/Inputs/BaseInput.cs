@@ -6,8 +6,8 @@ public partial class BaseInput : Node
 {
     #region Properties
 
-    public Vector2 Movement;
-    public Vector2 StickHandle;
+    public Vector2 Movement { get; protected set; }
+    public Vector2 StickHandle { get; protected set; }
     public bool IsShooting { get; protected set; }
     public bool IsPassing { get; protected set; }
     public bool IsSprinting { get; protected set; }
