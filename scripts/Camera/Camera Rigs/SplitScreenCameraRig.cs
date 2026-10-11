@@ -24,7 +24,7 @@ public class SplitScreenCameraRig : ICameraRig
         _uiParent = uiParent;
     }
 
-    public void Setup(IReadOnlyList<Skater> players, Node3D _)
+    public void Setup(IReadOnlyList<Skater> players)
     {
         if (_followCameraScene == null)
         {

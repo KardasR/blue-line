@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://b88iuamrtqgfm"]
+
+[ext_resource type="Script" uid="uid://607fah4wv42r" path="res://scripts/Skaters/AiSkater.cs" id="1_yj3kr"]
+
+[node name="AiSkater" type="Node" unique_id=1524242142]
+script = ExtResource("1_yj3kr")

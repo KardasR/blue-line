@@ -1,4 +1,5 @@
 using BlueLine.Skaters;
+using BlueLine.Management;
 
 using Godot;
 
@@ -21,7 +22,7 @@ public class FollowPuckFixedCameraRig : ICameraRig
         _parent = parent;
     }
 
-    public void Setup(IReadOnlyList<Skater> _, Node3D puck)
+    public void Setup(IReadOnlyList<Skater> _)
     {
         if (_followCameraScene == null)
         {
@@ -36,7 +37,7 @@ public class FollowPuckFixedCameraRig : ICameraRig
         _parent.AddChild(_rig);
 
         _camera = _rig.GetNode<Camera3D>("Camera Pos/Camera");
-        _rig.Target = puck;
+        _rig.Target = MatchStatus.Instance.SpawnedPuck;
 
         _camera.Current = true;
     }

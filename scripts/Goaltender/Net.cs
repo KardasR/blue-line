@@ -50,12 +50,6 @@ public partial class Net : MeshInstance3D
     [Export]
     public bool HomeNet { get; set; }
 
-    /// <summary>
-    /// The puck that the net will try to detect goals with.
-    /// </summary>
-    [Export]
-    public Puck PuckToTrack { get; set; }
-
     #endregion Properties
 
     #region Events
@@ -81,15 +75,15 @@ public partial class Net : MeshInstance3D
 
     public override void _PhysicsProcess(double delta)
     {
-        if (PuckToTrack == null || _goalScored)
+        if (MatchStatus.Instance.SpawnedPuck == null || _goalScored)
         {
-            if (PuckToTrack != null) 
-                _prevPuckPosition = PuckToTrack.GlobalPosition;
+            if (MatchStatus.Instance.SpawnedPuck != null) 
+                _prevPuckPosition = MatchStatus.Instance.SpawnedPuck.GlobalPosition;
                 
             return;
         }
 
-        Vector3 current = PuckToTrack.GlobalPosition;
+        Vector3 current = MatchStatus.Instance.SpawnedPuck.GlobalPosition;
 
         if (_hasPrevPosition)
             CheckCrossedLine(_prevPuckPosition, current);

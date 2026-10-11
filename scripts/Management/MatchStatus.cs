@@ -1,6 +1,8 @@
 using Godot;
 using System.Collections.Generic;
 
+using BlueLine.FrozenRubber;
+
 namespace BlueLine.Management;
 
 public partial class MatchStatus : Node
@@ -24,6 +26,7 @@ public partial class MatchStatus : Node
         } 
     }
 
+    public Puck SpawnedPuck { get; set; }
 
     public override void _EnterTree() => Instance = this;
 }

@@ -16,8 +16,6 @@ public partial class MainNode : Node
 {
     #region Members
 
-    private Puck _spawnedPuck;
-
     private ShotVisualizer _homeShotVisualizer;
 
     private ShotVisualizer _awayShotVisualizer;
@@ -71,10 +69,16 @@ public partial class MainNode : Node
     public PackedScene PlayerScene;
 
     /// <summary>
-    /// 
+    /// Scene used for holding the controller input scripts for each controller.
     /// </summary>
     [Export]
     public PackedScene InputScene;
+
+    /// <summary>
+    /// Scene used for holding the ai skater scripts for each skater.
+    /// </summary>
+    [Export]
+    public PackedScene AiSkaterScene;
 
     /// <summary>
     /// A list of players that were spawned into the scene.
@@ -177,8 +181,8 @@ public partial class MainNode : Node
     private void SpawnAndSetupGame()
     {
         // spawn and setup controller inputs
-        int numOfContr = Input.GetConnectedJoypads().Count;
-        for (int i = 0; i < numOfContr; i++)
+        int numOfUnassContr = Input.GetConnectedJoypads().Count;
+        for (int i = 0; i < numOfUnassContr; i++)
         {
             //TODO: make a state machine to handle disconnects and new controllers.
             ControllerInput playerInput = InputScene.Instantiate<ControllerInput>();
@@ -193,7 +197,7 @@ public partial class MainNode : Node
 
         // create and add the puck and players to the scene
         Puck puck = PuckScene.Instantiate<Puck>();
-        _spawnedPuck = puck;
+        MatchStatus.Instance.SpawnedPuck = puck;
         
         foreach (PlayerSpawnConfig config in MatchStatus.Instance.ConfirmedPlayers)
         {
@@ -208,20 +212,31 @@ public partial class MainNode : Node
             player.SecondaryColor = config.PlayerTeam.SecondaryColor;
             player.SkinColor = config.SkinColor;
 
-            BaseInput input = config.DeviceId != -1 ? GetNode<ControllerInput>($"ControllerInput{config.DeviceId}") : null;
+            BaseInput input = config.DeviceId != -1 ? GetNode<ControllerInput>($"ControllerInput{config.DeviceId}") : new AiInput() { Name = $"Ai-{config.PlayerId}"};
 
-            if (numOfContr > 0 && player.IsHomeTeam && input != null)
+            player.InputDevice = input;
+
+            AiSkater ai = config.DeviceId == -1 ? AiSkaterScene.Instantiate<AiSkater>() : null;
+
+            if (_homeShotVisualizer.Controller == null &&
+                numOfUnassContr > 0 && 
+                player.IsHomeTeam && 
+                input is ControllerInput cont)
             {
-                player.InputDevice = input;
-                _homeShotVisualizer.Controller = input is ControllerInput contr && _homeShotVisualizer.Controller == null ? contr : null;
-                numOfContr -= 1;
+                _homeShotVisualizer.Controller = cont;
+                numOfUnassContr -= 1;
             }
-            else if (numOfContr > 0 && input != null)
+            else if (_awayShotVisualizer.Controller == null &&
+                    numOfUnassContr > 0 && 
+                    !player.IsHomeTeam &&
+                    input is ControllerInput cont2)
             {
-                player.InputDevice = input;
-                _awayShotVisualizer.Controller = input is ControllerInput contr && _awayShotVisualizer.Controller == null ? contr : null;
-                numOfContr -= 1;
+                _awayShotVisualizer.Controller = cont2;
+                numOfUnassContr -= 1;
             }
+
+            if (ai != null)
+                player.AddChild(ai);
 
             AddChild(player);
             
@@ -249,19 +264,14 @@ public partial class MainNode : Node
 
         CameraManager.Instance.SetMode(
             Input.GetConnectedJoypads().Count <= 1 ? CameraMode.FollowFixed : CameraMode.SplitScreen,
-            _players,
-            puck
+            _players
         );
 
         AddChild(puck);
 
-        HomeGoalie.PuckToTrack = puck;
         HomeGoalie.GoalToDefend = HomeNet;
-        HomeNet.PuckToTrack = puck;
 
-        AwayGoalie.PuckToTrack = puck;
         AwayGoalie.GoalToDefend = AwayNet;
-        AwayNet.PuckToTrack = puck;
 
         static Positions GetPlayerPosition(int playerID)
         {

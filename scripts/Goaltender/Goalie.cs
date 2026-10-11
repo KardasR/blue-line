@@ -39,11 +39,6 @@ public partial class Goalie : CharacterBody3D
     public Node3D RightMostPos { get; set; }
 
     /// <summary>
-    /// The puck that the goalie tries to save.
-    /// </summary>
-    public Puck PuckToTrack { get; set; }
-
-    /// <summary>
     /// The goal that the goalie stands in front of.
     /// </summary>
     public Node3D GoalToDefend { get; set; }
@@ -130,10 +125,6 @@ public partial class Goalie : CharacterBody3D
 
     public void TrackThePuck(double delta)
     {
-        if (PuckToTrack == null)
-        {
-            throw new InvalidOperationException("No puck was given to track. Cannot keep goalie square to puck.");
-        }
         if (GoalToDefend == null)
         {
             throw new InvalidOperationException("No goal to defend was given. The goalie will not be able to adjust their position.");
@@ -149,7 +140,7 @@ public partial class Goalie : CharacterBody3D
         //TODO: calculate the goaliedepth based on how far away the puck is.
         float goalieDepth = 8.0f;
 
-        Vector3 direction = (PuckToTrack.GlobalPosition - GoalToDefend.GlobalPosition).Normalized();
+        Vector3 direction = (MatchStatus.Instance.SpawnedPuck.GlobalPosition - GoalToDefend.GlobalPosition).Normalized();
         Vector3 point = GoalToDefend.GlobalPosition + direction * goalieDepth;
 
         // constrain depth and horizontal
@@ -228,12 +219,7 @@ public partial class Goalie : CharacterBody3D
     /// <exception cref="InvalidOperationException">A puck needs to be setup before calling this so the goalie can track it</exception>
     public void StaySquareToPuck(double delta)
     {
-        if (PuckToTrack == null)
-        {
-            throw new InvalidOperationException("No puck was given to track. Cannot keep goalie square to puck.");
-        }
-
-        Vector3 direction = PuckToTrack.GlobalPosition - GlobalPosition;
+        Vector3 direction = MatchStatus.Instance.SpawnedPuck.GlobalPosition - GlobalPosition;
 
         // We only want horizontal rotation.
         direction.Y = _groundPosY;

@@ -25,7 +25,7 @@ public partial class CameraManager : Node
 
     public override void _EnterTree() => Instance = this;
 
-    public void SetMode(CameraMode mode, IReadOnlyList<Skater> players, Node3D puck)
+    public void SetMode(CameraMode mode, IReadOnlyList<Skater> players)
     {
         if (FollowCameraScene == null)
         {
@@ -44,7 +44,7 @@ public partial class CameraManager : Node
             CameraMode.PuckFollowFixed => new FollowPuckFixedCameraRig(FollowCameraScene, this),
             _ => throw new NotSupportedException(nameof(mode))
         };
-        _activeRig.Setup(players, puck);
+        _activeRig.Setup(players);
         RigChanged?.Invoke();
     }
 
