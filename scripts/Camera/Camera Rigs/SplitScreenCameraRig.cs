@@ -70,7 +70,7 @@ public class SplitScreenCameraRig : ICameraRig
 
             try
             {
-                Skater s = _players.First(p => p.InputDevice?.DeviceId == MatchStatus.Instance.ConfirmedPlayers[i].DeviceId);
+                Skater s = _players.First(p => p.InputDevice?.DeviceId == MatchStatus.Instance.PlayersToSpawn[i].DeviceId);
                 rig.Target = s;
 
                 subViewport.AddChild(rig);

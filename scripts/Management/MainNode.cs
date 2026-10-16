@@ -1,7 +1,6 @@
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using Godot;
 
@@ -9,6 +8,7 @@ using BlueLine.Goaltender;
 using BlueLine.FrozenRubber;
 using BlueLine.VideoFeed;
 using BlueLine.Skaters;
+using System.Text.RegularExpressions;
 
 namespace BlueLine.Management;
 
@@ -19,8 +19,6 @@ public partial class MainNode : Node
     private ShotVisualizer _homeShotVisualizer;
 
     private ShotVisualizer _awayShotVisualizer;
-
-    private readonly List<Skater> _players = [];
 
     #endregion Members
 
@@ -81,9 +79,10 @@ public partial class MainNode : Node
     public PackedScene AiSkaterScene;
 
     /// <summary>
-    /// A list of players that were spawned into the scene.
+    /// Scene used to manage users controlling different players on their chosen teams.
     /// </summary>
-    public IReadOnlyList<Skater> Players => _players;
+    [Export]
+    public PackedScene ControllerManagerScene;
 
     #endregion Properties
 
@@ -196,10 +195,13 @@ public partial class MainNode : Node
         FaceoffLineup.Instance.SetupFaceoffDots(GetNode<Node>("Arena/Faceoff Dots"));
 
         // create and add the puck and players to the scene
+        ControlManager controllerManager = ControllerManagerScene.Instantiate<ControlManager>();
         Puck puck = PuckScene.Instantiate<Puck>();
         MatchStatus.Instance.SpawnedPuck = puck;
+        List<Skater> _spawning = [];
+        List<PlayerInfo> _playerControllers = [];
         
-        foreach (PlayerSpawnConfig config in MatchStatus.Instance.ConfirmedPlayers)
+        foreach (PlayerSpawnConfig config in MatchStatus.Instance.PlayersToSpawn)
         {
             Skater player = PlayerScene.Instantiate<Skater>();
             
@@ -216,7 +218,10 @@ public partial class MainNode : Node
 
             player.InputDevice = input;
 
-            AiSkater ai = config.DeviceId == -1 ? AiSkaterScene.Instantiate<AiSkater>() : null;
+            if (input is ControllerInput)
+                _playerControllers.Add(new() { DeviceId = config.DeviceId, IsHomeTeam = player.IsHomeTeam});
+
+            AiSkater ai = AiSkaterScene.Instantiate<AiSkater>();
 
             if (_homeShotVisualizer.Controller == null &&
                 numOfUnassContr > 0 && 
@@ -253,24 +258,21 @@ public partial class MainNode : Node
                 Z = player.GlobalRotation.Z
             };
 
-            _players.Add(player);
+            _spawning.Add(player);
         }
 
-        // setup the teammates for each player.
-        foreach(Skater skater in _players)
-        {
-            skater.Teammates = _players.Where(s => s != skater && s.IsHomeTeam == skater.IsHomeTeam).ToList();
-        }
+        MatchStatus.Instance.SpawnedSkaters = _spawning;
+        MatchStatus.Instance.PlayerControllers = _playerControllers;
 
         CameraManager.Instance.SetMode(
             Input.GetConnectedJoypads().Count <= 1 ? CameraMode.FollowFixed : CameraMode.SplitScreen,
-            _players
+            MatchStatus.Instance.SpawnedSkaters
         );
 
         AddChild(puck);
+        AddChild(controllerManager);
 
         HomeGoalie.GoalToDefend = HomeNet;
-
         AwayGoalie.GoalToDefend = AwayNet;
 
         static Positions GetPlayerPosition(int playerID)
@@ -293,8 +295,7 @@ public partial class MainNode : Node
 
     private void SetupPlayersForFaceoff(FaceoffDot dot)
     {
-        // we want to loop through the Players list and spawn each player according to where they should be.
-        foreach (Skater skater in Players)
+        foreach (Skater skater in MatchStatus.Instance.SpawnedSkaters)
         {
             skater.Velocity = Vector3.Zero;
             skater.GlobalPosition = FaceoffLineup.Instance.LineupSkater(skater.Assignment, FaceoffLineup.Instance.FaceoffLocations[dot], skater.IsHomeTeam);

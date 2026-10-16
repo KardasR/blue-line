@@ -13,6 +13,7 @@ public class FollowFixedCameraRig : ICameraRig
 {
     private FollowCamera _rig;
     private Camera3D _camera;
+    private bool _isFollowingHomeTeam;
 
     private PackedScene _followCameraScene;
     private Node _parent;
@@ -21,6 +22,8 @@ public class FollowFixedCameraRig : ICameraRig
     {
         _followCameraScene = cameraScene;
         _parent = parent;
+
+        GameEvents.Instance.NewPuckCarrier += ReactToNewPuckCarrier;
     }
 
     public void Setup(IReadOnlyList<Skater> players)
@@ -38,12 +41,22 @@ public class FollowFixedCameraRig : ICameraRig
         _parent.AddChild(_rig);
 
         _camera = _rig.GetNode<Camera3D>("Camera Pos/Camera");
-        _rig.Target = players.First(p => p.InputDevice?.DeviceId == MatchStatus.Instance.ConfirmedPlayers[0].DeviceId);
+        Skater sk8r = players.First(p => p.InputDevice?.DeviceId == MatchStatus.Instance.PlayersToSpawn[0].DeviceId);
+        _rig.Target = sk8r;
+        _isFollowingHomeTeam = sk8r.IsHomeTeam;
 
         _camera.Current = true;
 
-        if (!players.First(p => p.InputDevice?.DeviceId == MatchStatus.Instance.ConfirmedPlayers[0].DeviceId).IsHomeTeam)
+        if (!sk8r.IsHomeTeam)
             _rig.RotateY(Mathf.Pi);
+    }
+
+    private void ReactToNewPuckCarrier(Skater skater)
+    {
+        if (_isFollowingHomeTeam == skater.IsHomeTeam)
+        {
+            _rig.Target = skater;
+        }
     }
 
     public Camera3D GetCameraForPlayer(int playerIndex) => _camera;

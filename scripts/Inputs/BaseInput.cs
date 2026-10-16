@@ -14,7 +14,7 @@ public partial class BaseInput : Node
     public bool IsSkatingBackwards { get; protected set; }
     public bool IsBodyChecking { get; protected set; }
 
-    public int DeviceId { get; set; } = 0;
+    public int DeviceId { get; set; } = -1;
 
     [Export]
     public float Deadzone { protected get; set; } = 0.2f;

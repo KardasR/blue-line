@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://c03h5rhgbttpf" path="res://scenes/ScoreBoard.tscn" id="3_jlsqs"]
 [ext_resource type="PackedScene" uid="uid://b88iuamrtqgfm" path="res://scenes/AiSkater.tscn" id="5_qmy6f"]
 [ext_resource type="Script" uid="uid://nwa7805bb0wp" path="res://scripts/Camera/CameraManager.cs" id="5_wp0k4"]
+[ext_resource type="PackedScene" uid="uid://d088uwqm8smuh" path="res://scenes/ControlManager.tscn" id="6_mwfav"]
 [ext_resource type="PackedScene" uid="uid://dc3n0sdfq6mbw" path="res://scenes/Input.tscn" id="7_bjd11"]
 [ext_resource type="PackedScene" uid="uid://cxux2362mck70" path="res://scenes/FollowCamera.tscn" id="7_lhr70"]
 [ext_resource type="Script" uid="uid://rs7plbx7tm1l" path="res://scripts/Attributes/PlayerAttributes.cs" id="8_lhr70"]
@@ -44,6 +45,7 @@ AwayGoalie = NodePath("Away Goalie")
 PlayerScene = ExtResource("3_bjd11")
 InputScene = ExtResource("7_bjd11")
 AiSkaterScene = ExtResource("5_qmy6f")
+ControllerManagerScene = ExtResource("6_mwfav")
 
 [node name="Lighting" type="Node" parent="." unique_id=188668628]
 

@@ -90,7 +90,7 @@ public partial class Skater : CharacterBody3D
     /// <summary>
     /// The different teammates of the player.
     /// </summary>
-    public List<Skater> Teammates { get; set; }
+    public List<Skater> Teammates => [.. MatchStatus.Instance.SpawnedSkaters.Where(s => s != this && s.IsHomeTeam == IsHomeTeam)];
 
     /// <summary>
     /// Main color of the jersey and equipment.

@@ -1,3 +1,4 @@
+using BlueLine.Skaters;
 using Godot;
 
 namespace BlueLine.Management;
@@ -22,15 +23,13 @@ public struct PlayerSpawnConfig
     public int DeviceId;
     public SelectedTeam PlayerTeam;
     public Positions Assignment;
-    public Vector3 SpawnPosition;
     public Color SkinColor;
 }
 
-public struct PlayerLobbyEntry
+public struct PlayerInfo
 {
     public int DeviceId;
-    public SelectedTeam PlayerTeam;
-    public Positions Position;
+    public bool IsHomeTeam;
 }
 
 public class SelectedTeam

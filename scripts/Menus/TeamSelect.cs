@@ -12,7 +12,7 @@ public partial class TeamSelect : CanvasLayer
 {
     #region Members
 
-    private List<PlayerState> _players = [];
+    private List<PlayerMenuState> _players = [];
 
     #endregion Members
 
@@ -24,7 +24,7 @@ public partial class TeamSelect : CanvasLayer
 
     #region Helper Classes
 
-    public class PlayerState
+    public class PlayerMenuState
     {
         public int DeviceId { get; set; }
         public string Name { get; set; }
@@ -128,7 +128,7 @@ public partial class TeamSelect : CanvasLayer
             int deviceId = @event.Device;
             
             // Find the player matching this controller device ID
-            PlayerState player = _players.Find(p => p.DeviceId == deviceId);
+            PlayerMenuState player = _players.Find(p => p.DeviceId == deviceId);
             if (player == null) 
                 return;
 
@@ -195,7 +195,7 @@ public partial class TeamSelect : CanvasLayer
     /// </summary>
     /// <param name="player"></param>
     /// <param name="direction"></param>
-    private void ChangePlayerTeam(PlayerState player, MenuDirection direction)
+    private void ChangePlayerTeam(PlayerMenuState player, MenuDirection direction)
     {
         if (player.CurrentTeam.HomeOrAway == TeamEnum.Unassigned)
         {
@@ -214,7 +214,7 @@ public partial class TeamSelect : CanvasLayer
         UpdateTeamLists();
     }
 
-    private void ChangePlayerPosition(PlayerState player, int direction)
+    private void ChangePlayerPosition(PlayerMenuState player, int direction)
     {
         // Unassigned players don't compete for team roles, cycle normally
         if (player.CurrentTeam.HomeOrAway == TeamEnum.Unassigned)
@@ -329,9 +329,9 @@ public partial class TeamSelect : CanvasLayer
 
     private void ConfirmAndLoadMatch()
     {
-        MatchStatus.Instance.ConfirmedPlayers.Clear();
+        MatchStatus.Instance.PlayersToSpawn.Clear();
 
-        MatchStatus.Instance.ConfirmedPlayers.AddRange(BuildSpawnConfigs(10));
+        MatchStatus.Instance.PlayersToSpawn.AddRange(BuildSpawnConfigs(10));
 
         GetTree().ChangeSceneToPacked(MainScene);
     }
@@ -354,14 +354,13 @@ public partial class TeamSelect : CanvasLayer
                 PlayerId = spawnCount,
                 DeviceId = -1,
                 Assignment = GetPlayerPosition(spawnCount),
-                //SpawnPosition = FaceoffLineup.Instance.LineupSkater(GetPlayerPosition(spawnCount), FaceoffLineup.Instance.FaceoffLocations[FaceoffDot.CenterIce], isHomeTeam),
                 SkinColor = Color.Color8(241, 194, 125, 255),
             };
 
             list.Add(skater);
         }
 
-        foreach (PlayerState player in _players)
+        foreach (PlayerMenuState player in _players)
         {
             PlayerSpawnConfig config = list.Find(
                 f => f.PlayerTeam.HomeOrAway == player.CurrentTeam.HomeOrAway && f.Assignment == player.Position
@@ -374,7 +373,6 @@ public partial class TeamSelect : CanvasLayer
                     DeviceId=player.DeviceId,
                     PlayerId=config.PlayerId,
                     PlayerTeam=config.PlayerTeam,
-                    //SpawnPosition=config.SpawnPosition,
                     SkinColor=config.SkinColor,
                 };
             }

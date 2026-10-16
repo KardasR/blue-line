@@ -5,25 +5,26 @@ namespace BlueLine.Skaters;
 
 public partial class AiSkater : Node
 {
-    private bool _canMove =>_skater?.InputDevice is AiInput &&
-                            _skater?.Assignment == Management.Positions.LeftDefense && 
-                            !_skater.IsHomeTeam;
+    private bool _canControl =>_skater?.InputDevice is AiInput;
     private Skater _skater => GetParent<Skater>();
 
     private AiInput AiController => _skater.InputDevice as AiInput;
 
     public override void _PhysicsProcess(double delta)
     {
-        if (!_canMove)
+        if (!_canControl)
         {
-            base._PhysicsProcess(delta);
-            return;
+            // see if we need to make an aiinput
+            if (_skater?.InputDevice == null)
+            {
+                _skater.InputDevice = new AiInput();
+            }
         }
 
-        SkateToTarget();
+        // move here
     }
 
-    public void SkateToTarget()
+    private void SkateToTarget()
     {
         if (AiController == null) 
             return;
